@@ -3,13 +3,12 @@ defmodule MembraneTimescaleMetrics.Model do
   import Ecto.Changeset
   alias MembraneTimescaleMetrics.Repo
 
-
   @primary_key false
   schema "metrics" do
-    field :time, :naive_datetime_usec
-    field :pipeline_pid, :string
-    field :element_name, :string
-    field :value, :integer
+    field(:time, :naive_datetime_usec)
+    field(:pipeline_pid, :string)
+    field(:element_name, :string)
+    field(:value, :integer)
   end
 
   def changeset(schema, params) do
@@ -18,9 +17,8 @@ defmodule MembraneTimescaleMetrics.Model do
     |> validate_required([:time, :pipeline_pid, :element_name, :value])
   end
 
-
   def create_metric(%{time: _time, pipeline_id: _id, element_name: _name, value: _value} = metric) do
-    with %Ecto.Changeset{valid?: true} = changeset<- changeset(%__MODULE__{}, metric) do
+    with %Ecto.Changeset{valid?: true} = changeset <- changeset(%__MODULE__{}, metric) do
       case Repo.insert(changeset) do
         {:error, changeset} -> {:error, changeset}
         _ -> :ok
@@ -35,6 +33,4 @@ defmodule MembraneTimescaleMetrics.Model do
     |> Ecto.Multi.insert_all(:insert_all, __MODULE__, metrics)
     |> Repo.transaction()
   end
-
-
 end
