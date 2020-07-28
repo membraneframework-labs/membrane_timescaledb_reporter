@@ -2,32 +2,36 @@ defmodule MembraneTimescaleMetrics.Repo.Migrations.CreateExtensionTimescaledb do
   use Ecto.Migration
 
   def up() do
-    # execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE")
+    execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE")
 
     create table(:metrics, primary_key: false) do
-      # timestamps(
-      #   updated_at: false,
-      #   inserted_at: :time,
-      #   type: :naive_datetime_usec,
-      #   # WARNING
-      #   # TODO: there might be a problem, 2 elements are probabgle to have the same time	, lookup if you can make primary key on timestamp and element name
-      #   primary_key: true
-      # )
-
       add(:time, :naive_datetime_usec, null: false, primary_key: true)
-      add(:pipeline_pid, :string, null: false)
-      # element name in the future might contain information about full element name being created in pipeline
-      add(:element_name, :string, null: false, primary_key: true)
+      add(:element_path_id, :id, null: false, primary_key: true)
       add(:value, :integer, null: false)
     end
+    # create index(:metrics, [:time	, :element_path_id])
 
-    flush()
-    create index(:metrics, [:time	, :element_name])
+    create table(:element_paths, primary_key: {:id, :id, autogenerate: true}) do
+      add(:path, :string, null: false)
+    end
+    create unique_index(:element_paths, :path)
+    execute("SELECT create_hypertable('metrics', 'time', chunk_time_interval => INTERVAL '2 minutes')")
 
+    execute("""
+    ALTER TABLE metrics SET (
+      timescaledb.compress,
+      timescaledb.compress_segmentby = 'element_path_id'
+    );
+    """)
+
+    execute("SELECT add_compress_chunks_policy('metrics', INTERVAL '1 minute')")
   end
 
+
   def down() do
-    drop index(:metrics, [:time, :element_name])
+    drop unique_index(:element_paths, :path)
+    drop table(:element_paths)
+    drop index(:metrics, [:time, :element_path_id])
     drop table(:metrics)
     execute("DROP EXTENSION IF EXISTS timescaledb CASCADE")
   end

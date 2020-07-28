@@ -8,6 +8,13 @@ defmodule MembraneTimescaleMetrics do
       {MembraneTimescaleMetrics.Provider, []}
     ]
 
+    :telemetry.attach(
+      "membrane-timescale-handler",
+      [:membrane, :buffer, :size],
+      &MembraneTimescaleMetrics.TelemetryHandler.handle_event/4,
+      nil
+    )
+
     opts = [strategy: :one_for_one, name: :membrane_timescale_metrics]
     Supervisor.start_link(children, opts)
   end

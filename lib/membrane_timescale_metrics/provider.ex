@@ -19,14 +19,13 @@ defmodule MembraneTimescaleMetrics.Provider do
     GenServer.cast(__MODULE__, :flush)
   end
 
-  def send_metric(%{pipeline_pid: _pid, element_name: _element_name, value: _value} = metric) do
-    metric = Map.update!(metric, :pipeline_pid, &inspect(&1))
+  def send_metric(%{element_path: _path, value: _value} = metric) do
     GenServer.cast(__MODULE__, {:new_metric, Map.put(metric, :time, NaiveDateTime.utc_now())})
   end
 
   def send_metric(_) do
     {:error,
-     "invalid metric format, expected map %{pipeline_pid: pid_t(), element_name: String.t(), value: integer()"}
+     "invalid metric format, expected map %{pipeline_name: String.t(), element_name: String.t(), value: integer()"}
   end
 
   @impl true
@@ -48,18 +47,17 @@ defmodule MembraneTimescaleMetrics.Provider do
 
   defp flush_metrics(metrics) do
     case Model.create_all_metrics(metrics) do
-      {:error, changesets} ->
-        Logger.error(inspect(changesets))
-
-      {inserted, _} ->
+      {:ok, %{insert_all_metrics: inserted}} ->
         Logger.info("[MembraneTimescaleMetrics] Inserted #{inserted} new metrics")
+      {:error, operation, value, changes} ->
+        Logger.error("[MembraneTimescaleMetrics] Encountered error: #{operation} #{value} #{changes}")
     end
   end
 
   def test() do
-    1..10000
+    1..1
     |> Enum.each(fn n ->
-      send_metric(%{pipeline_pid: "this one", element_name: "this element", value: n})
+      send_metric(%{element_path: "random test element path contianing pipelineo", value: n})
     end)
   end
 end

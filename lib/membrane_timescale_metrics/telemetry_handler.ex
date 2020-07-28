@@ -4,8 +4,9 @@ defmodule MembraneTimescaleMetrics.TelemetryHandler do
 
   def handle_event(
         [:membrane, :buffer, :size],
-        %{pipeline_pid: _pid, element_name: _name, value: _value} = metric,
-        _meta
+        %{element_path: _path, value: _value} = metric,
+        _meta,
+        _config
       ) do
     Provider.send_metric(metric)
   end
