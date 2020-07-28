@@ -1,8 +1,8 @@
-defmodule MembraneTimescaleMetrics.Model do
+defmodule Membrane.Telemetry.TimescaleDB.Model do
   require Logger
   import Ecto.Query
-  alias MembraneTimescaleMetrics.Repo
-  alias MembraneTimescaleMetrics.Model.{Metric, ElementPath}
+  alias Membrane.Telemetry.TimescaleDB.Repo
+  alias Membrane.Telemetry.TimescaleDB.Model.{Metric, ElementPath}
 
   def create_all_metrics(metrics) do
     element_paths =

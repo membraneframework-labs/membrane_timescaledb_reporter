@@ -1,9 +1,9 @@
-defmodule MembraneTimescaleMetrics.Provider do
+defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   use GenServer
   require Logger
-  alias MembraneTimescaleMetrics.Model
+  alias Membrane.Telemetry.TimescaleDB.Model
 
-  @treshold 1000
+  @buffer_size Application.get_env(:membrane_timescaledb_reporter, :metric_buffer_size, 1000)
 
   @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(_) do
@@ -19,20 +19,19 @@ defmodule MembraneTimescaleMetrics.Provider do
     GenServer.cast(__MODULE__, :flush)
   end
 
-  def send_metric(%{element_path: _path, value: _value} = metric) do
+  def send_metric(%{element_path: _path, method: _metod, value: _value} = metric) do
     GenServer.cast(__MODULE__, {:new_metric, Map.put(metric, :time, NaiveDateTime.utc_now())})
   end
 
   def send_metric(_) do
-    {:error,
-     "invalid metric format, expected map %{pipeline_name: String.t(), element_name: String.t(), value: integer()"}
+    raise "#{__MODULE__}: Invalid metric format, expected map %{element_path: String.t(), method: String.t(), value: integer()"
   end
 
   @impl true
   def handle_cast({:new_metric, metric}, %{metrics: metrics} = state) do
     metrics = [metric | metrics]
 
-    if length(metrics) >= @treshold do
+    if length(metrics) >= @buffer_size do
       flush_metrics(metrics)
       {:noreply, %{state | metrics: []}}
     else
@@ -48,16 +47,12 @@ defmodule MembraneTimescaleMetrics.Provider do
   defp flush_metrics(metrics) do
     case Model.create_all_metrics(metrics) do
       {:ok, %{insert_all_metrics: inserted}} ->
-        Logger.info("[MembraneTimescaleMetrics] Inserted #{inserted} new metrics")
-      {:error, operation, value, changes} ->
-        Logger.error("[MembraneTimescaleMetrics] Encountered error: #{operation} #{value} #{changes}")
-    end
-  end
+        Logger.debug("[Membrane.Telemetry.TimescaleDB] Flushed #{inserted} metrics")
 
-  def test() do
-    1..1
-    |> Enum.each(fn n ->
-      send_metric(%{element_path: "random test element path contianing pipelineo", value: n})
-    end)
+      {:error, operation, value, changes} ->
+        Logger.error(
+          "[Membrane.Telemetry.TimescaleDB] Encountered error: #{operation} #{value} #{changes}"
+        )
+    end
   end
 end

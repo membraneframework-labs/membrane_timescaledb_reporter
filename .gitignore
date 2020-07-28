@@ -21,5 +21,5 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-membrane_timescale_metrics-*.tar
+membrane_timescaledb_reporter-*.tar
 
