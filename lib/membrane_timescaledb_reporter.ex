@@ -9,7 +9,11 @@ defmodule Membrane.Telemetry.TimescaleDB do
     ]
 
     :telemetry.attach(
-      Application.get_env(:membrane_timescaledb_reporter, :reporter_name, "membrane-timescaledb-handler"),
+      Application.get_env(
+        :membrane_timescaledb_reporter,
+        :reporter_name,
+        "membrane-timescaledb-handler"
+      ),
       [:membrane, :input_buffer, :size],
       &Membrane.Telemetry.TimescaleDB.TelemetryHandler.handle_event/4,
       nil

@@ -22,7 +22,8 @@ defmodule Membrane.Telemetry.TimescaleDB.MixProject do
     [
       {:ecto_sql, "~> 3.0"},
       {:telemetry, "~> 0.4"},
-      {:postgrex, ">= 0.0.0"}
+      {:postgrex, ">= 0.0.0"},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
     ]
   end
 end

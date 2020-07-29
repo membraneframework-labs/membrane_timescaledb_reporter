@@ -37,9 +37,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
         Logger.debug("#{@log_prefix} Flushed #{inserted} metrics")
 
       {:error, operation, value, changes} ->
-        Logger.error(
-          "#{@log_prefix} Encountered error: #{operation} #{value} #{changes}"
-        )
+        Logger.error("#{@log_prefix} Encountered error: #{operation} #{value} #{changes}")
     end
   end
 
@@ -48,7 +46,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   end
 
   @impl true
-  def handle_cast({:new_metric, metric}, %{metrics: metrics, flush_threshold: flush_threshold} = state) do
+  def handle_cast(
+        {:new_metric, metric},
+        %{metrics: metrics, flush_threshold: flush_threshold} = state
+      ) do
     metrics = [metric | metrics]
 
     if length(metrics) >= flush_threshold do
