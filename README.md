@@ -83,7 +83,8 @@ Timescale will create hyper table based on `metrics` table and only this table w
 
 
 ## Basic TimescaleDB and Grafana setup
-Basic docker-compose setup of timescaledb and grafana can be found in `docker_setup` folder.
+Basic docker-compose setup of timescaledb and grafana with simple grafana dashboard can be found in `example_setup` folder.
+Before using grafana dashboard make sure you have added postgres data source and marked timescale extension.
 
 ## Copyright and License
 

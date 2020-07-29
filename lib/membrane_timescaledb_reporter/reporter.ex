@@ -5,8 +5,6 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   @log_prefix "[#{__MODULE__}]"
 
-  @flush_threshold Application.get_env(:membrane_timescaledb_reporter, :metric_buffer_size, 1000)
-
   @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(_) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
@@ -15,8 +13,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   @impl true
   def init(_) do
     flush_timeout = Application.get_env(:membrane_timescaledb_reporter, :flush_timeout, 5000)
+    flush_threshold = Application.get_env(:membrane_timescaledb_reporter, :flush_threshold, 1000)
+
     Process.send_after(__MODULE__, :force_flush, flush_timeout)
-    {:ok, %{metrics: [], flush_timeout: flush_timeout}}
+    {:ok, %{metrics: [], flush_timeout: flush_timeout, flush_threshold: flush_threshold}}
   end
 
   def flush() do
@@ -48,10 +48,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   end
 
   @impl true
-  def handle_cast({:new_metric, metric}, %{metrics: metrics} = state) do
+  def handle_cast({:new_metric, metric}, %{metrics: metrics, flush_threshold: flush_threshold} = state) do
     metrics = [metric | metrics]
 
-    if length(metrics) >= @flush_threshold do
+    if length(metrics) >= flush_threshold do
       flush_metrics(metrics)
       {:noreply, %{state | metrics: []}}
     else
