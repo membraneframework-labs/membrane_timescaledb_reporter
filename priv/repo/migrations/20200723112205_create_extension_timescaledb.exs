@@ -1,8 +1,8 @@
 defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescaledb do
   use Ecto.Migration
 
-  @chunk_interval "1 minute"
-  @chunk_compress_interval "1 minute"
+  @chunk_time_interval Application.get_env(:membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo)[:chunk_time_interval] || "1 minute"
+  @chunk_compress_policy_interval Application.get_env(:membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo)[:chunk_compress_policy_interval] || "1 minute"
 
   def up() do
     execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE")
@@ -19,7 +19,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescal
       add(:path, :string, null: false)
     end
     create unique_index(:element_paths, :path)
-    execute("SELECT create_hypertable('metrics', 'time', chunk_time_interval => INTERVAL '#{@chunk_interval}')")
+    execute("SELECT create_hypertable('metrics', 'time', chunk_time_interval => INTERVAL '#{@chunk_time_interval}')")
 
     execute("""
     ALTER TABLE metrics SET (
@@ -28,7 +28,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescal
     );
     """)
 
-    execute("SELECT add_compress_chunks_policy('metrics', INTERVAL '#{@chunk_compress_interval}')")
+    execute("SELECT add_compress_chunks_policy('metrics', INTERVAL '#{@chunk_compress_policy_interval}')")
   end
 
 

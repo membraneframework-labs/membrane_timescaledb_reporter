@@ -3,7 +3,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   require Logger
   alias Membrane.Telemetry.TimescaleDB.Model
 
-  @buffer_size Application.get_env(:membrane_timescaledb_reporter, :metric_buffer_size, 1000)
+  @log_prefix "[#{__MODULE__}]"
+
+  @flush_threshold Application.get_env(:membrane_timescaledb_reporter, :metric_buffer_size, 1000)
 
   @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(_) do
@@ -12,7 +14,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   @impl true
   def init(_) do
-    {:ok, %{metrics: []}}
+    flush_timeout = Application.get_env(:membrane_timescaledb_reporter, :flush_timeout, 5000)
+    Process.send_after(__MODULE__, :force_flush, flush_timeout)
+    {:ok, %{metrics: [], flush_timeout: flush_timeout}}
   end
 
   def flush() do
@@ -27,11 +31,27 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     raise "#{__MODULE__}: Invalid metric format, expected map %{element_path: String.t(), method: String.t(), value: integer()"
   end
 
+  defp flush_metrics(metrics) when length(metrics) > 0 do
+    case Model.create_all_metrics(metrics) do
+      {:ok, %{insert_all_metrics: inserted}} ->
+        Logger.debug("#{@log_prefix} Flushed #{inserted} metrics")
+
+      {:error, operation, value, changes} ->
+        Logger.error(
+          "#{@log_prefix} Encountered error: #{operation} #{value} #{changes}"
+        )
+    end
+  end
+
+  defp flush_metrics(_) do
+    :ok
+  end
+
   @impl true
   def handle_cast({:new_metric, metric}, %{metrics: metrics} = state) do
     metrics = [metric | metrics]
 
-    if length(metrics) >= @buffer_size do
+    if length(metrics) >= @flush_threshold do
       flush_metrics(metrics)
       {:noreply, %{state | metrics: []}}
     else
@@ -44,15 +64,11 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     {:noreply, %{state | metrics: []}}
   end
 
-  defp flush_metrics(metrics) do
-    case Model.create_all_metrics(metrics) do
-      {:ok, %{insert_all_metrics: inserted}} ->
-        Logger.debug("[Membrane.Telemetry.TimescaleDB] Flushed #{inserted} metrics")
-
-      {:error, operation, value, changes} ->
-        Logger.error(
-          "[Membrane.Telemetry.TimescaleDB] Encountered error: #{operation} #{value} #{changes}"
-        )
-    end
+  @impl true
+  def handle_info(:force_flush, %{flush_timeout: flush_timeout} = state) do
+    Logger.debug("#{@log_prefix} Reached flush timeout: #{flush_timeout}, flushing...")
+    flush()
+    Process.send_after(__MODULE__, :force_flush, flush_timeout)
+    {:noreply, state}
   end
 end
