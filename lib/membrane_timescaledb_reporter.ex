@@ -8,16 +8,7 @@ defmodule Membrane.Telemetry.TimescaleDB do
       {Membrane.Telemetry.TimescaleDB.Reporter, []}
     ]
 
-    :telemetry.attach(
-      Application.get_env(
-        :membrane_timescaledb_reporter,
-        :reporter_name,
-        "membrane-timescaledb-handler"
-      ),
-      [:membrane, :input_buffer, :size],
-      &Membrane.Telemetry.TimescaleDB.TelemetryHandler.handle_event/4,
-      nil
-    )
+    :ok = Membrane.Telemetry.TimescaleDB.TelemetryHandler.attach_itself()
 
     opts = [strategy: :one_for_one, name: :membrane_timescaledb_reporter]
     Supervisor.start_link(children, opts)

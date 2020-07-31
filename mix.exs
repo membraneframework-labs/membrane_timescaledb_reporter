@@ -21,7 +21,8 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
       name: "Membrane Telemetry TimescaleDB",
       source_url: @github_url,
       homepage_url: "https://membraneframework.org",
-      docs: docs()
+      docs: docs(),
+      aliases: aliases()
     ]
   end
 
@@ -62,6 +63,12 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
       extras: ["README.md"],
       source_ref: "v#{@version}",
       nest_modules_by_prefix: [Membrane.Telemetry.TimescaleDB]
+    ]
+  end
+
+  defp aliases do
+    [
+      test: ["ecto.create", "ecto.migrate", "test"]
     ]
   end
 end
