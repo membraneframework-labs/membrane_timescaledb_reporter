@@ -16,53 +16,53 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     flush_threshold = Application.get_env(:membrane_timescaledb_reporter, :flush_threshold, 1000)
 
     Process.send_after(__MODULE__, :force_flush, flush_timeout)
-    {:ok, %{metrics: [], flush_timeout: flush_timeout, flush_threshold: flush_threshold}}
+    {:ok, %{measurements: [], flush_timeout: flush_timeout, flush_threshold: flush_threshold}}
   end
 
   def flush() do
     GenServer.cast(__MODULE__, :flush)
   end
 
-  def send_metric(%{element_path: _path, method: _metod, value: _value} = metric) do
-    GenServer.cast(__MODULE__, {:new_metric, Map.put(metric, :time, NaiveDateTime.utc_now())})
+  def send_measurement(%{element_path: path, method: method, value: value} = measurement) when is_binary(path) and is_binary(method) and is_integer(value)  do
+    GenServer.cast(__MODULE__, {:measurement, Map.put(measurement, :time, NaiveDateTime.utc_now())})
   end
 
-  def send_metric(_) do
-    raise "#{__MODULE__}: Invalid metric format, expected map %{element_path: String.t(), method: String.t(), value: integer()"
+  def send_measurement(_) do
+    raise "#{__MODULE__}: Invalid measurement format, expected map %{element_path: String.t(), method: String.t(), value: integer()"
   end
 
-  defp flush_metrics(metrics) when length(metrics) > 0 do
-    case Model.create_all_metrics(metrics) do
-      {:ok, %{insert_all_metrics: inserted}} ->
-        Logger.debug("#{@log_prefix} Flushed #{inserted} metrics")
+  defp flush_measurements(measurements) when length(measurements) > 0 do
+    case Model.add_all_measurements(measurements) do
+      {:ok, %{insert_all_measurements: inserted}} ->
+        Logger.debug("#{@log_prefix} Flushed #{inserted} measurements")
 
       {:error, operation, value, changes} ->
         Logger.error("#{@log_prefix} Encountered error: #{operation} #{value} #{changes}")
     end
   end
 
-  defp flush_metrics(_) do
+  defp flush_measurements(_) do
     :ok
   end
 
   @impl true
   def handle_cast(
-        {:new_metric, metric},
-        %{metrics: metrics, flush_threshold: flush_threshold} = state
+        {:measurement, measurement},
+        %{measurements: measurements, flush_threshold: flush_threshold} = state
       ) do
-    metrics = [metric | metrics]
+    measurements = [measurement | measurements]
 
-    if length(metrics) >= flush_threshold do
-      flush_metrics(metrics)
-      {:noreply, %{state | metrics: []}}
+    if length(measurements) >= flush_threshold do
+      flush_measurements(measurements)
+      {:noreply, %{state | measurements: []}}
     else
-      {:noreply, %{state | metrics: metrics}}
+      {:noreply, %{state | measurements: measurements}}
     end
   end
 
-  def handle_cast(:flush, %{metrics: metrics} = state) do
-    flush_metrics(metrics)
-    {:noreply, %{state | metrics: []}}
+  def handle_cast(:flush, %{measurements: measurements} = state) do
+    flush_measurements(measurements)
+    {:noreply, %{state | measurements: []}}
   end
 
   @impl true

@@ -4,10 +4,10 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
 
   def handle_event(
         [:membrane, :input_buffer, :size],
-        %{element_path: _path, method: _method, value: _value} = metric,
+        measurement,
         _meta,
         _config
       ) do
-    Reporter.send_metric(metric)
+    Reporter.send_measurement(measurement)
   end
 end

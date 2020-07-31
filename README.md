@@ -1,6 +1,6 @@
 # Membrane.Telemetry.TimescaleDB
 
-TimescaleDB metrics reporter for telemetry events emitted [Membrane Core](https://hex.pm/packages/membrane_core).
+TimescaleDB metrics reporter for telemetry events emitted by [Membrane Core](https://hex.pm/packages/membrane_core).
 
 Reporter attaches itself to [Telemetry package](https://hex.pm/packages/telemetry) and listens for events declared and documented in Membrane Core's module `Membrane.Telemetry`.
 
@@ -10,9 +10,6 @@ Reporter attaches itself to [Telemetry package](https://hex.pm/packages/telemetr
 ## Installation
 
 To make use of the reporter you should add it as a dependency in your application along with `membrane_core`.
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `membrane_timescaledb_reporter` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -36,11 +33,12 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
 
 Attributes worth mentioning are `chunk_time_interval` and
 `chunk_compress_policy_interval`, both are TimescaleDB specific.
+ - `chunk_time_interval` is used for hyper table creation, more in [documentation](https://docs.timescale.com/latest/api#hypertable-management)
+ - `chunk_compress_policy_interval` is used as time interval for timescale's daemon compressing chunks, more in [documentation](https://docs.timescale.com/latest/api#add_compress_chunks_policy).
+
 Adjust them accordingly to your membrane pipeline configuration and
 amount of incoming events. For quick testing shorter intervals might be preferable as metrics can accumulate very fast. 
 
- - `chunk_time_interval` is used for hyper table creation, more in [documentation](https://docs.timescale.com/latest/api#hypertable-management)
- - `chunk_compress_policy_interval` is used as time interval for timescale's daemon compressing chunks, more in [documentation](https://docs.timescale.com/latest/api#add_compress_chunks_policy).
 
 Additional reporter options are:
 ```elixir
@@ -62,7 +60,7 @@ mix ecto.create -r Membrane.Telemetry.TimescaleDB.Repo && mix ecto.migrate -r Me
 ## Database Architecture
 Reporter will create two tables:
 
-#### Table: metrics
+#### Table: measurements
 |      Column     |             Type            |
 |:---------------:|:---------------------------:|
 |       time      | timestamp without time zone |
@@ -78,13 +76,12 @@ Reporter will create two tables:
 
 Full element paths can be quite lengthy and repeat frequently so they are stored in separate table.
 
-Timescale will create hyper table based on `metrics` table and only this table will be chunked and further compressed.
+Timescale will create hyper table based on `measurements` table and only this table will be chunked and further compressed.
 
 
 
-## Basic TimescaleDB and Grafana setup
-Basic docker-compose setup of timescaledb and grafana with simple grafana dashboard can be found in `example_setup` folder.
-Before using grafana dashboard make sure you have added postgres data source and marked timescale extension.
+## Integration with Grafana 
+Instructions how to create basic TimescaleDB and integrate with Grafana can be found [here](GrafanaIntegration.md).
 
 ## Copyright and License
 

@@ -1,9 +1,9 @@
-defmodule Membrane.Telemetry.TimescaleDB.Model.Metric do
+defmodule Membrane.Telemetry.TimescaleDB.Model.Measurement do
   use Ecto.Schema
   import Ecto.Changeset
 
   @primary_key false
-  schema "metrics" do
+  schema "measurements" do
     field(:time, :naive_datetime_usec)
     field(:element_path_id, :id)
     field(:method, :string)
