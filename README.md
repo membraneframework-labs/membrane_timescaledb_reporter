@@ -81,7 +81,7 @@ Timescale will create hyper table based on `measurements` table and only this ta
 
 
 ## Integration with Grafana 
-Instructions how to create basic TimescaleDB and integrate with Grafana can be found [here](GrafanaIntegration.md).
+Instructions how to create basic TimescaleDB setup and integrate with Grafana can be found [here](GrafanaIntegration.md).
 
 ## Copyright and License
 
