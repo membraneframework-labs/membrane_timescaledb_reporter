@@ -28,8 +28,8 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
         MapSet.new(element_paths) |> MapSet.difference(fetched_paths) |> Enum.map(& &1.path)
 
       all_paths =
-        (inserted_element_paths ++
-           repo.all(from(ep in ElementPath, where: ep.path in ^remaining_paths)))
+        inserted_element_paths ++
+          repo.all(from(ep in ElementPath, where: ep.path in ^remaining_paths))
 
       {:ok, all_paths}
     end)
@@ -38,26 +38,27 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
   # maps ElementPath's path to corresponding id
   defp map_path_to_id(paths) do
     paths
-    |> Enum.map(& {&1.path, &1.id})
+    |> Enum.map(&{&1.path, &1.id})
     |> Enum.into(%{})
   end
 
   # remaps all measurements' element_path to corresponding element_path's id and inserts them all
   defp insert_all_measurements(multi, measurements) do
-      Ecto.Multi.run(multi, :insert_all_measurements, fn repo, %{fetch_remaining_paths: all_paths} ->
-        path_to_id = map_path_to_id(all_paths)
+    Ecto.Multi.run(multi, :insert_all_measurements, fn repo,
+                                                       %{fetch_remaining_paths: all_paths} ->
+      path_to_id = map_path_to_id(all_paths)
 
-        measurements =
-          measurements
-          |> Enum.map(fn measurement ->
-            measurement
-            |> Map.put(:element_path_id, path_to_id[measurement.element_path])
-            |> Map.drop([:element_path])
-          end)
+      measurements =
+        measurements
+        |> Enum.map(fn measurement ->
+          measurement
+          |> Map.put(:element_path_id, path_to_id[measurement.element_path])
+          |> Map.drop([:element_path])
+        end)
 
-        {inserted, _} = repo.insert_all(Measurement, measurements)
-        {:ok, inserted}
-      end)
+      {inserted, _} = repo.insert_all(Measurement, measurements)
+      {:ok, inserted}
+    end)
   end
 
   def add_all_measurements(measurements) do
@@ -74,7 +75,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
       |> insert_all_measurements(measurements)
       |> Repo.transaction()
     rescue
-      sth -> Logger.error(inspect(sth))
+      error in Postgrex.Error -> {:error, error}
     end
   end
 end

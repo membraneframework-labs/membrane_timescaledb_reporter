@@ -1,10 +1,9 @@
 defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
-  use ExUnit.Case
+  # use ExUnit.Case
   use Membrane.Telemetry.TimescaleDB.RepoCase
 
   alias Membrane.Telemetry.TimescaleDB.Reporter
 
-  @input_buffer_event [:membrane, :input_buffer, :size]
   @simple_measurement %{element_path: "path", method: "method", value: 100}
   @invalid_measurement %{}
 
@@ -27,9 +26,9 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
       end
     end
 
-    test "caches messages before before reaching threshold" do
+    test "caches messages before reaching threshold" do
       threshold = Application.get_env(:membrane_timescaledb_reporter, :flush_threshold, nil)
-      measurements_count = div threshold, 2
+      measurements_count = div(threshold, 2)
 
       1..measurements_count
       |> Enum.each(fn _ -> Reporter.send_measurement(@simple_measurement) end)
@@ -41,21 +40,26 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
     test "flushes messages on reaching threshold" do
       threshold = Application.get_env(:membrane_timescaledb_reporter, :flush_threshold, nil)
 
-      1..(div threshold, 2) |> Enum.each(fn _ -> Reporter.send_measurement(@simple_measurement) end)
-      measurements = Reporter.get_cached_measurements()
-      assert Enum.count(measurements) == div threshold, 2
+      1..div(threshold, 2)
+      |> Enum.each(fn _ -> Reporter.send_measurement(@simple_measurement) end)
 
-      1..(div threshold, 2) |> Enum.each(fn _ -> Reporter.send_measurement(@simple_measurement) end)
+      measurements = Reporter.get_cached_measurements()
+      assert Enum.count(measurements) == div(threshold, 2)
+
+      1..div(threshold, 2)
+      |> Enum.each(fn _ -> Reporter.send_measurement(@simple_measurement) end)
+
       measurements = Reporter.get_cached_measurements()
       assert Enum.empty?(measurements)
     end
 
     test "flushes on request" do
       Reporter.send_measurement(@simple_measurement)
+      assert not Enum.empty?(Reporter.get_cached_measurements())
+
       Reporter.flush()
 
-      measurements = Reporter.get_cached_measurements()
-      assert Enum.empty?(measurements)
+      assert Enum.empty?(Reporter.get_cached_measurements())
     end
   end
 end

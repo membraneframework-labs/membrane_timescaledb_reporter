@@ -6,7 +6,6 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
   alias Membrane.Telemetry.TimescaleDB.Model
   alias Membrane.Telemetry.TimescaleDB.Model.{Measurement, ElementPath}
 
-
   @measurement %{element_path: "path", method: "method", value: 10}
 
   defp apply_time(measurement) do
@@ -18,7 +17,8 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
       assert Enum.empty?(Repo.all(Measurement))
       assert Enum.empty?(Repo.all(ElementPath))
 
-      assert {:ok, %{insert_all_measurements: 1}} = Model.add_all_measurements([apply_time(@measurement)])
+      assert {:ok, %{insert_all_measurements: 1}} =
+               Model.add_all_measurements([apply_time(@measurement)])
 
       assert Enum.count(Repo.all(Measurement)) == 1
       assert Enum.count(Repo.all(ElementPath)) == 1
@@ -33,6 +33,12 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
       assert element_path.path == @measurement.element_path
 
       assert Enum.count(Repo.all(Measurement)) == 20
+    end
+
+    test "returns error on duplicated measurement" do
+      measurement = apply_time(@measurement)
+      result = [measurement, measurement] |> Model.add_all_measurements()
+      assert {:error, %Postgrex.Error{postgres: %{code: :unique_violation}}} = result
     end
   end
 end

@@ -23,13 +23,17 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     GenServer.cast(__MODULE__, :flush)
   end
 
-
-  def send_measurement(%{element_path: path, method: method, value: value} = measurement) when is_binary(path) and is_binary(method) and is_integer(value)  do
-    GenServer.cast(__MODULE__, {:measurement, Map.put(measurement, :time, NaiveDateTime.utc_now())})
+  def send_measurement(%{element_path: path, method: method, value: value} = measurement)
+      when is_binary(path) and is_binary(method) and is_integer(value) do
+    GenServer.cast(
+      __MODULE__,
+      {:measurement, Map.put(measurement, :time, NaiveDateTime.utc_now())}
+    )
   end
 
   def send_measurement(_) do
-    raise ArgumentError, "#{__MODULE__}: Invalid measurement format, expected map %{element_path: String.t(), method: String.t(), value: integer()"
+    raise ArgumentError,
+          "#{__MODULE__}: Invalid measurement format, expected map %{element_path: String.t(), method: String.t(), value: integer()"
   end
 
   defp flush_measurements(measurements) when length(measurements) > 0 do

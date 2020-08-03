@@ -1,4 +1,3 @@
-
 import Config
 
 config :membrane_timescaledb_reporter, ecto_repos: [Membrane.Telemetry.TimescaleDB.Repo]
@@ -14,5 +13,5 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
 
 config :membrane_timescaledb_reporter,
   reporter_name: "membrane-timescaledb-handler",
-  flush_timeout: 5000,
+  flush_timeout: 15000,
   flush_threshold: 1000
