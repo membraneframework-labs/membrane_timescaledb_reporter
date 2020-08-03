@@ -1,5 +1,4 @@
 defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
-  use ExUnit.Case
   use Membrane.Telemetry.TimescaleDB.RepoCase
 
   alias Membrane.Telemetry.TimescaleDB.Repo

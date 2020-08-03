@@ -1,14 +1,13 @@
 defmodule Membrane.Telemetry.TimescaleDB do
   use Application
+  alias Membrane.Telemetry.TimescaleDB.Metrics
 
   @impl true
   def start(_type, _args) do
     children = [
       {Membrane.Telemetry.TimescaleDB.Repo, []},
-      {Membrane.Telemetry.TimescaleDB.Reporter, []}
+      {Membrane.Telemetry.TimescaleDB.Reporter, [metrics: Metrics.all()]}
     ]
-
-    :ok = Membrane.Telemetry.TimescaleDB.TelemetryHandler.attach_itself()
 
     opts = [strategy: :one_for_one, name: :membrane_timescaledb_reporter]
     Supervisor.start_link(children, opts)

@@ -2,25 +2,48 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   use GenServer
   require Logger
   alias Membrane.Telemetry.TimescaleDB.Model
+  alias Membrane.Telemetry.TimescaleDB.TelemetryHandler
 
   @log_prefix "[#{__MODULE__}]"
 
   @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+  def start_link(opts) do
+    metrics =
+      opts[:metrics] ||
+        raise ArgumentError, "the :metrics options is required by #{inspect(__MODULE__)}"
+
+    GenServer.start_link(__MODULE__, [metrics: metrics], name: __MODULE__)
   end
 
   @impl true
-  def init(_) do
+  def init(metrics: metrics) do
+    Process.flag(:trap_exit, true)
+    Membrane.Telemetry.TimescaleDB.TelemetryHandler.register_metrics(metrics)
+
     flush_timeout = Application.get_env(:membrane_timescaledb_reporter, :flush_timeout, 5000)
     flush_threshold = Application.get_env(:membrane_timescaledb_reporter, :flush_threshold, 1000)
 
     Process.send_after(__MODULE__, :force_flush, flush_timeout)
-    {:ok, %{measurements: [], flush_timeout: flush_timeout, flush_threshold: flush_threshold}}
+
+    {:ok,
+     %{
+       measurements: [],
+       flush_timeout: flush_timeout,
+       flush_threshold: flush_threshold,
+       metrics: metrics
+     }}
   end
 
   def flush() do
     GenServer.cast(__MODULE__, :flush)
+  end
+
+  def reset() do
+    GenServer.cast(__MODULE__, :reset)
+  end
+
+  def get_metrics() do
+    GenServer.call(__MODULE__, :metrics)
   end
 
   def send_measurement(%{element_path: path, method: method, value: value} = measurement)
@@ -32,8 +55,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   end
 
   def send_measurement(_) do
-    raise ArgumentError,
-          "#{__MODULE__}: Invalid measurement format, expected map %{element_path: String.t(), method: String.t(), value: integer()"
+    Logger.warn(
+      "#{__MODULE__}: Invalid measurement format, expected map %{element_path: String.t(), method: String.t(), value: integer()}"
+    )
   end
 
   defp flush_measurements(measurements) when length(measurements) > 0 do
@@ -74,9 +98,17 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     {:noreply, %{state | measurements: []}}
   end
 
+  def handle_cast(:reset, state) do
+    {:noreply, %{state | measurements: []}}
+  end
+
   @impl true
   def handle_call(:get_cached_measurements, _from, %{measurements: measurements} = state) do
     {:reply, measurements, state}
+  end
+
+  def handle_call(:metrics, _from, %{metrics: metrics} = state) do
+    {:reply, metrics, state}
   end
 
   @impl true
@@ -85,5 +117,14 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     flush()
     Process.send_after(__MODULE__, :force_flush, flush_timeout)
     {:noreply, state}
+  end
+
+  @impl true
+  def terminate(reason, _state) do
+    Logger.error(
+      "#{__MODULE__}.terminate/2 called with reason #{inspect(reason)}, unregistering handler"
+    )
+
+    TelemetryHandler.unregister_handler()
   end
 end

@@ -1,5 +1,4 @@
 defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
-  # use ExUnit.Case
   use Membrane.Telemetry.TimescaleDB.RepoCase
 
   alias Membrane.Telemetry.TimescaleDB.Reporter
@@ -8,9 +7,8 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
   @invalid_measurement %{}
 
   setup do
-    # ExUnit by default starts application so to keep Reporter's GenServer state clean just flush it before each test
-    # Ecto Sandbox will wipe database by itself
-    Reporter.flush()
+    # ExUnit by default starts application so to keep Reporter's GenServer state clean just reset it before each test
+    Reporter.reset()
   end
 
   describe "TimescaleDB Reporter" do
@@ -18,12 +16,6 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
       assert :ok = Reporter.send_measurement(@simple_measurement)
 
       assert [@simple_measurement] = Reporter.get_cached_measurements()
-    end
-
-    test "raises exception on invalid measurement format" do
-      assert_raise ArgumentError, ~r/.*/, fn ->
-        Reporter.send_measurement(@invalid_measurement)
-      end
     end
 
     test "caches messages before reaching threshold" do
