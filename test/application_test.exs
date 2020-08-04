@@ -6,6 +6,10 @@ defmodule Membrane.Telemetry.TimescaleDB.ApplicationTest do
 
   @measurement %{element_path: "handler test", method: "testing", value: 1}
 
+  setup do
+    Reporter.reset()
+  end
+
   describe "Application" do
     test "attaches telemetry handler on start" do
       registered_handlers = Event.prefixes() |> Enum.map(&:telemetry.list_handlers(&1))
@@ -17,7 +21,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ApplicationTest do
 
       :telemetry.execute(event_name, @measurement)
 
-      assert [@measurement | _] = Reporter.get_cached_measurements()
+      assert [@measurement] = Reporter.get_cached_measurements()
     end
   end
 end

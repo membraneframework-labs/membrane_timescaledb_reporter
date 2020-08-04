@@ -42,6 +42,14 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   end
 
   @doc """
+  Resets cached measurements.
+  """
+  @spec reset() :: :ok
+  def reset() do
+    GenServer.cast(__MODULE__, :reset)
+  end
+
+  @doc """
   Returns cached measurements.
   """
   @spec get_cached_measurements() :: list(map())
@@ -75,6 +83,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   def handle_cast(:flush, %{measurements: measurements} = state) do
     flush_measurements(measurements)
+    {:noreply, %{state | measurements: []}}
+  end
+
+  def handle_cast(:reset, state) do
     {:noreply, %{state | measurements: []}}
   end
 

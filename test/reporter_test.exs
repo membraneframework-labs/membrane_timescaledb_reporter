@@ -8,9 +8,8 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
   @invalid_measurement %{}
 
   setup do
-    # ExUnit by default starts application so to keep Reporter's GenServer state clean just flush it before each test
-    # Ecto Sandbox will wipe database by itself
-    Reporter.flush()
+    # ExUnit by default starts application so to keep Reporter's GenServer state clean just reset it before each test
+    Reporter.reset()
   end
 
   describe "TimescaleDB Reporter" do
