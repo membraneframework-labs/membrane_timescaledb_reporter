@@ -19,6 +19,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Metrics do
     [
       %{
         event_name: [:membrane, :input_buffer, :size]
+      },
+      %{
+        event_name: [:membrane, :link, :new]
       }
     ]
   end

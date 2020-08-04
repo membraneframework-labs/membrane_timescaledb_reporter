@@ -6,12 +6,22 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   Handles InputBuffer's event and forwards it to `Membrane.Telemetry.TimescaleDB.Reporter`.
   """
   def handle_event(
-        [:membrane, :input_buffer, :size],
+        [:membrane, :input_buffer, :size] = event_name,
         measurement,
         _meta,
         _config
       ) do
-    Reporter.send_measurement(measurement)
+    Reporter.send_measurement(event_name, measurement)
+  end
+
+  def handle_event(
+        [:membrane, :link, :new],
+        link,
+        _meta,
+        _config
+      ) do
+    Reporter.send_link(link)
+    Logger.info("#{__MODULE__}: #{inspect(link)}")
   end
 
   def handle_event(

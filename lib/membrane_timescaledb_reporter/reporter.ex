@@ -46,7 +46,13 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     GenServer.call(__MODULE__, :metrics)
   end
 
-  def send_measurement(%{element_path: path, method: method, value: value} = measurement)
+  @spec send_measurement(list(atom()), map()) :: :ok
+  def send_measurement(event_name, measurement)
+
+  def send_measurement(
+        [:membrane, :input_buffer, :size],
+        %{element_path: path, method: method, value: value} = measurement
+      )
       when is_binary(path) and is_binary(method) and is_integer(value) do
     GenServer.cast(
       __MODULE__,
@@ -54,10 +60,24 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     )
   end
 
-  def send_measurement(_) do
+  def send_measurement(event_name, measurement) do
     Logger.warn(
-      "#{__MODULE__}: Invalid measurement format, expected map %{element_path: String.t(), method: String.t(), value: integer()}"
+      "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{
+        inspect(measurement)
+      } is not being supported"
     )
+  end
+
+  def send_link(%{parent_path: parent_path, from: from, to: to} = link)
+      when is_binary(parent_path) and is_binary(from) and is_binary(to) do
+    GenServer.cast(
+      __MODULE__,
+      {:link, Map.put(link, :time, NaiveDateTime.utc_now())}
+    )
+  end
+
+  def send_link(invalid_link) do
+    Logger.warn("#{__MODULE__} Invalid link format: #{inspect(invalid_link)}")
   end
 
   defp flush_measurements(measurements) when length(measurements) > 0 do
@@ -91,6 +111,18 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     else
       {:noreply, %{state | measurements: measurements}}
     end
+  end
+
+  def handle_cast({:link, link}, state) do
+    case Model.add_link(link) do
+      {:ok, _} ->
+        Logger.debug("#{@log_prefix} Added new link")
+
+      {:error, reason} ->
+        Logger.error("#{@log_prefix} Error while adding new link: #{inspect(reason)}")
+    end
+
+    {:noreply, state}
   end
 
   def handle_cast(:flush, %{measurements: measurements} = state) do
