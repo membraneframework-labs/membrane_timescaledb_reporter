@@ -26,7 +26,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
         |> MapSet.new(& &1.path)
 
       remaining_paths =
-        MapSet.new(element_paths, & &1.path) |> MapSet.difference(fetched_paths) |> MapSet.to_list()
+        MapSet.new(element_paths, & &1.path)
+        |> MapSet.difference(fetched_paths)
+        |> MapSet.to_list()
 
       all_paths =
         inserted_element_paths ++
@@ -66,7 +68,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
   def add_all_measurements(measurements) do
     element_paths =
       measurements
-      |> Enum.map(& %{path: &1.element_path})
+      |> Enum.map(&%{path: &1.element_path})
       |> Enum.uniq()
 
     try do

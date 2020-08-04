@@ -14,7 +14,6 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
 
-
   @doc """
   Sends measurement to GenServer which will cache it and eventually flush it to the database.
 

@@ -17,7 +17,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ApplicationTest do
 
       :telemetry.execute(event_name, @measurement)
 
-      assert [@measurement | _] =  Reporter.get_cached_measurements()
+      assert [@measurement | _] = Reporter.get_cached_measurements()
     end
   end
 end
