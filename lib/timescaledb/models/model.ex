@@ -26,7 +26,8 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
         |> MapSet.new(& &1.path)
 
       remaining_paths =
-        MapSet.new(element_paths, & &1.path)
+        element_paths
+        |> MapSet.new(& &1.path)
         |> MapSet.difference(fetched_paths)
         |> MapSet.to_list()
 
