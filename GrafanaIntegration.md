@@ -1,6 +1,6 @@
 # Grafana Integration
 
-This document provides indtroduciton to integrating this repostory TimescaleDB's schema with Grafana to create dashboards for monitoring your pipeline behaviour.
+This document provides introduciton to integrating this repostory TimescaleDB's schema with Grafana to create dashboards for monitoring your pipeline behaviour.
 
 ## Setup
 
@@ -28,7 +28,7 @@ services:
       - POSTGRES_PASSWORD=postgres
 ```
 
-You will need postgres credentials not only for `membrane_timescaledb_reporter` but as well for creating Grafana's data source.
+You will need postgres credentials not only for `membrane_timescaledb_reporter` but also for creating Grafana's data source.
 
 ## Grafana
 Grafana is a web browser tool that you will be able to access after running e.g. with help of docker.
@@ -40,29 +40,28 @@ Grafana's dashboard is a basic building block that will contain all your panels 
 You have to start by creating one and then adding new pannels that will be used for displaying graphs and maybe some kind of diagrams.
 
 Grafana's power comes from an ability to easily share a dashboard layout between users. Dashboard can be imported to Grafana with a simple *.json* file.
-We provide a simple example dashboard containing 2 panels both of which contain graphs plotting `Membrane's InputBuffer's` internal buffer sizes reported by two function inside mentioned module. 
+We provide a simple example dashboard containing 2 panels both of which contain graphs plotting `Membrane's InputBuffer's` internal buffer sizes reported by two functions inside mentioned module. 
 Dashboard layout is available at `example_setup/sample_grafana_dashboard.json`.
 
-To import dashboard navigate in to Grafana's page and then to `Create > Import > Upload JSON file` and select mentioned file and click *Import*.
+To import dashboard navigate to Grafana's page and then to `Create > Import > Upload JSON file`, select mentioned file and click *Import*.
 
 ## Grafana's Data Source
 
 For the imported dashboard to work you will need to add a data source.
 
-A data source is used by Grafana to fetch necessary data requested by panels inside of your dashboard.
+A data source is used by Grafana to fetch necessary data requested by panels inside your dashboard.
 In this case you will need to add PostgreSQL data source.
 Follow `Configuration > Data Sources > Add data source` and search for `PostgreSQL` and click *Select*.
 Then you will need to provide connection information and enable `TimescaleDB` option in `PostgreSQL details` section.
 You might need either to set current data source as default (at the very top of settings, right to the name) or change data source location inside of given dashboard's panels as those panels use a default one. 
 
 ## Creating new visualizations
-You might want to create new panels that will visualize other aspects of your pipeline. Then you will need to provide them with previously created data source and make
-proper SQL queries that will fetch necessary data. You can inspect example's panels how to write such queries (they are very basic) or you might consider visiting TimescaleDB's and Grafana's documentations.
+You might want to create new panels that will visualize other aspects of your pipeline. To do this, you will need to provide them with previously created data source and create
+proper SQL queries that will fetch necessary data. You can inspect example's panels to see how to write such queries (they are very basic). You might also consider visiting TimescaleDB's and Grafana's documentations.
 
 [TimescaleDB documentation](https://docs.timescale.com/latest/tutorials/tutorial-grafana-dashboards)
 
 [Grafana documentation](https://grafana.com/docs/grafana/latest/panels/queries)
 
 ## Warnings
-Be carefull when quering large time ranges as some metrics might be reported thousands times per second and querying for example last 6h at once might crash your database instance or Grafana's dashboard.
-
+Be careful when querying large time ranges as some metrics might be reported thousands times per second and querying for example last 6h at once might crash your database instance or Grafana's dashboard.
