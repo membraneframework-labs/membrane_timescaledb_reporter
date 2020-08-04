@@ -1,4 +1,6 @@
 defmodule Membrane.Telemetry.TimescaleDB.Model do
+  @moduledoc false
+
   require Logger
   import Ecto.Query
   alias Membrane.Telemetry.TimescaleDB.Repo
@@ -21,11 +23,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
 
       fetched_paths =
         inserted_element_paths
-        |> Enum.map(&%{path: &1.path})
-        |> MapSet.new()
+        |> MapSet.new(& &1.path)
 
       remaining_paths =
-        MapSet.new(element_paths) |> MapSet.difference(fetched_paths) |> Enum.map(& &1.path)
+        MapSet.new(element_paths, & &1.path) |> MapSet.difference(fetched_paths) |> MapSet.to_list()
 
       all_paths =
         inserted_element_paths ++
@@ -44,8 +45,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
 
   # remaps all measurements' element_path to corresponding element_path's id and inserts them all
   defp insert_all_measurements(multi, measurements) do
-    Ecto.Multi.run(multi, :insert_all_measurements, fn repo,
-                                                       %{fetch_remaining_paths: all_paths} ->
+    Ecto.Multi.run(multi, :insert_all_measurements, fn repo, changes ->
+      %{fetch_remaining_paths: all_paths} = changes
+
       path_to_id = map_path_to_id(all_paths)
 
       measurements =
@@ -64,9 +66,8 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
   def add_all_measurements(measurements) do
     element_paths =
       measurements
-      |> Enum.map(& &1.element_path)
+      |> Enum.map(& %{path: &1.element_path})
       |> Enum.uniq()
-      |> Enum.map(&%{path: &1})
 
     try do
       Ecto.Multi.new()

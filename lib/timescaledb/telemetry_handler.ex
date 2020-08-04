@@ -1,4 +1,8 @@
 defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
+  @moduledoc """
+  Declares `handle_event/4` and attach function required for :telemetry package.
+  """
+
   require Logger
   alias Membrane.Telemetry.TimescaleDB.Reporter
 
@@ -25,7 +29,7 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
         "membrane-timescaledb-handler"
       ),
       [:membrane, :input_buffer, :size],
-      &handle_event/4,
+      &Membrane.Telemetry.TimescaleDB.TelemetryHandler.handle_event/4,
       nil
     )
   end

@@ -1,4 +1,6 @@
 defmodule Membrane.Telemetry.TimescaleDB.Model.ElementPath do
+  @moduledoc false
+
   require Logger
   use Ecto.Schema
   import Ecto.Changeset

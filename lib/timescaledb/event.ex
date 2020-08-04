@@ -4,8 +4,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Event do
   """
 
   @doc """
-  Returns event prefixes hanled by TimescaleDB reporter.
+  Returns event prefixes handled by TimescaleDB reporter.
   """
+  @spec prefixes() :: list(list(atom()))
   def prefixes() do
     [
       [:membrane, :input_buffer, :size]

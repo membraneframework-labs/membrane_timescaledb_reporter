@@ -59,6 +59,10 @@ You might need either to set current data source as default (at the very top of 
 You might want to create new panels that will visualize other aspects of your pipeline. Then you will need to provide them with previously created data source and make
 proper SQL queries that will fetch necessary data. You can inspect example's panels how to write such queries (they are very basic) or you might consider visiting TimescaleDB's and Grafana's documentations.
 
+[TimescaleDB documentation](https://docs.timescale.com/latest/tutorials/tutorial-grafana-dashboards)
+
+[Grafana documentation](https://grafana.com/docs/grafana/latest/panels/queries)
+
 ## Warnings
 Be carefull when quering large time ranges as some metrics might be reported thousands times per second and querying for example last 6h at once might crash your database instance or Grafana's dashboard.
 
