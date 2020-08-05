@@ -1,4 +1,5 @@
 defmodule Membrane.Telemetry.TimescaleDB do
+  @moduledoc false
   use Application
   alias Membrane.Telemetry.TimescaleDB.Metrics
 
