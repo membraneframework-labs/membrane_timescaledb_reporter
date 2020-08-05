@@ -36,7 +36,7 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   def register_metrics(metrics) do
     :telemetry.attach_many(
       get_handler_name(),
-      metrics |> Enum.group_by(& &1.event_name) |> Map.keys(),
+      metrics |> Enum.map(& &1.event_name),
       &handle_event/4,
       nil
     )
