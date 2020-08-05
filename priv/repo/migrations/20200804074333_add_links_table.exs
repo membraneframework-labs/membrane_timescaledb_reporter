@@ -8,6 +8,8 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.AddLinksTable do
       add(:from, :string, null: false)
       add(:to, :string, null: false)
       add(:via, :string)
+      add(:pad_from, :string, null: false)
+      add(:pad_to, :string, null: false)
     end
   end
 end
