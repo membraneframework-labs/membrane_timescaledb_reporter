@@ -1,0 +1,30 @@
+version: 2.0
+jobs:
+  build:
+    docker:
+      - image:  membrane/membrane:latest
+        environment:
+          MIX_ENV: test
+      - image: timescale/timescaledb:latest-pg11
+        command: [-cshared_preload_libraries=timescaledb]
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+    working_directory: ~/app
+
+    steps:
+      - checkout
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - run: mix compile --force --warnings-as-errors
+      - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.6.1
+      - run: # wait for database before starting testing
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run: mix test
+      - run: MIX_ENV=dev mix docs && ! mix docs 2>&1 | grep -q "warning:"
