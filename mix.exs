@@ -60,7 +60,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md"],
+      extras: ["README.md", "GrafanaIntegration.md"],
       source_ref: "v#{@version}",
       nest_modules_by_prefix: [Membrane.Telemetry.TimescaleDB]
     ]
