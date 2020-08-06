@@ -70,7 +70,6 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   def send_link(%{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to} = link)
       when is_binary(parent_path) and is_binary(from) and is_binary(to) and is_binary(pad_from) and is_binary(pad_to) do
-        IO.inspect link
     GenServer.cast(
       __MODULE__,
       {:link, Map.put(link, :time, NaiveDateTime.utc_now())}
