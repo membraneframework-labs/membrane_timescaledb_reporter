@@ -53,7 +53,6 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
     :telemetry.detach(get_handler_name())
   end
 
-
   @doc """
   Returns handler name.
 
