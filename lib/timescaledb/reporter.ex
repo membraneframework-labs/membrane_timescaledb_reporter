@@ -22,7 +22,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   @doc """
   Sends measurement to GenServer which will cache it and eventually flush it to the database.
 
-  Raises ArgumentError on invalid/unsupported measurement format.
+  Logs warning on invalid/unsupported measurement format.
   """
   @spec send_measurement(map()) :: :ok
   def send_measurement(%{element_path: path, method: method, value: value} = measurement)
