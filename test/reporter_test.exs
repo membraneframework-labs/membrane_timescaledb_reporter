@@ -18,12 +18,6 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
       assert [@simple_measurement] = Reporter.get_cached_measurements()
     end
 
-    test "raises exception on invalid measurement format" do
-      assert_raise ArgumentError, ~r/.*/, fn ->
-        Reporter.send_measurement(@invalid_measurement)
-      end
-    end
-
     test "caches messages before reaching threshold" do
       threshold = Application.get_env(:membrane_timescaledb_reporter, :flush_threshold, nil)
       measurements_count = div(threshold, 2)
