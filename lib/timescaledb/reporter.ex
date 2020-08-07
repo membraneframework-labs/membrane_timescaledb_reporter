@@ -1,4 +1,8 @@
 defmodule Membrane.Telemetry.TimescaleDB.Reporter do
+  @moduledoc """
+  Receives measurements via `send_measurement/1` then proceedes to cache and eventually flush them to TimescaleDB database.
+  """
+
   use GenServer
   require Logger
   alias Membrane.Telemetry.TimescaleDB.Model
@@ -10,9 +14,83 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   def start_link(opts) do
     metrics =
       opts[:metrics] ||
-        raise ArgumentError, "the :metrics options is required by #{inspect(__MODULE__)}"
+        raise ArgumentError, "the `:metrics` options is required by #{inspect(__MODULE__)}"
 
     GenServer.start_link(__MODULE__, [metrics: metrics], name: __MODULE__)
+  end
+
+  @doc """
+  Sends measurement to GenServer which will dependently on event name eventually persist it to database.
+
+  Logs warning on invalid/unsupported measurement event name or format.
+
+  ## Supported events
+    * [:membrane, :input_buffer, :size] - caches measurements to a certain threshold and flushes them to the database via `Membrane.Telemetry.TimescaleDB.Model.add_all_measurements/1`.
+    * [:membrane, :link, :new] - instantly passes measurement to `Membrane.Telemetry.TimescaleDB.Model.add_link/1`.
+  """
+  @spec send_measurement(list(atom()), map()) :: :ok
+  def send_measurement(event_name, measurement)
+
+  def send_measurement(
+        [:membrane, :input_buffer, :size],
+        %{element_path: path, method: method, value: value} = measurement
+      )
+      when is_binary(path) and is_binary(method) and is_integer(value) do
+    GenServer.cast(
+      __MODULE__,
+      {:measurement, Map.put(measurement, :time, NaiveDateTime.utc_now())}
+    )
+  end
+
+
+  def send_measurement(
+    [:membrane, :link, :new],
+    %{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to} = link)
+      when is_binary(parent_path) and is_binary(from) and is_binary(to) and is_binary(pad_from) and is_binary(pad_to) do
+    GenServer.cast(
+      __MODULE__,
+      {:link, Map.put(link, :time, NaiveDateTime.utc_now())}
+    )
+  end
+
+  def send_measurement(event_name, measurement) do
+    Logger.warn(
+      "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{
+        inspect(measurement)
+      } is not being supported"
+    )
+  end
+
+  @doc """
+  Flushes cached measurements to the database.
+  """
+  @spec flush() :: :ok
+  def flush() do
+    GenServer.cast(__MODULE__, :flush)
+  end
+
+  @doc """
+  Resets cached measurements.
+  """
+  @spec reset() :: :ok
+  def reset() do
+    GenServer.cast(__MODULE__, :reset)
+  end
+
+  @doc """
+  Returns cached measurements.
+  """
+  @spec get_cached_measurements() :: list(map())
+  def get_cached_measurements() do
+    GenServer.call(__MODULE__, :get_cached_measurements)
+  end
+
+  @doc """
+  Returns list of metrics registered by GenServer.
+  """
+  @spec get_metrics() :: list(list(atom()))
+  def get_metrics() do
+    GenServer.call(__MODULE__, :metrics)
   end
 
   @impl true
@@ -32,70 +110,6 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
        flush_threshold: flush_threshold,
        metrics: metrics
      }}
-  end
-
-  def flush() do
-    GenServer.cast(__MODULE__, :flush)
-  end
-
-  def reset() do
-    GenServer.cast(__MODULE__, :reset)
-  end
-
-  def get_metrics() do
-    GenServer.call(__MODULE__, :metrics)
-  end
-
-  @spec send_measurement(list(atom()), map()) :: :ok
-  def send_measurement(event_name, measurement)
-
-  def send_measurement(
-        [:membrane, :input_buffer, :size],
-        %{element_path: path, method: method, value: value} = measurement
-      )
-      when is_binary(path) and is_binary(method) and is_integer(value) do
-    GenServer.cast(
-      __MODULE__,
-      {:measurement, Map.put(measurement, :time, NaiveDateTime.utc_now())}
-    )
-  end
-
-  def send_measurement(event_name, measurement) do
-    Logger.warn(
-      "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{
-        inspect(measurement)
-      } is not being supported"
-    )
-  end
-
-  def send_link(%{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to} = link)
-      when is_binary(parent_path) and is_binary(from) and is_binary(to) and is_binary(pad_from) and is_binary(pad_to) do
-    GenServer.cast(
-      __MODULE__,
-      {:link, Map.put(link, :time, NaiveDateTime.utc_now())}
-    )
-  end
-
-  def send_link(invalid_link) do
-    Logger.warn("#{__MODULE__} Invalid link format: #{inspect(invalid_link)}")
-  end
-
-  defp flush_measurements(measurements) when length(measurements) > 0 do
-    case Model.add_all_measurements(measurements) do
-      {:ok, %{insert_all_measurements: inserted}} ->
-        Logger.debug("#{@log_prefix} Flushed #{inserted} measurements")
-
-      {:error, operation, value, changes} ->
-        Logger.error("#{@log_prefix} Encountered error: #{operation} #{value} #{changes}")
-    end
-  end
-
-  defp flush_measurements(_) do
-    :ok
-  end
-
-  def get_cached_measurements() do
-    GenServer.call(__MODULE__, :get_cached_measurements)
   end
 
   @impl true
@@ -158,5 +172,19 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     )
 
     TelemetryHandler.unregister_handler()
+  end
+
+  defp flush_measurements(measurements) when length(measurements) > 0 do
+    case Model.add_all_measurements(measurements) do
+      {:ok, %{insert_all_measurements: inserted}} ->
+        Logger.debug("#{@log_prefix} Flushed #{inserted} measurements")
+
+      {:error, operation, value, changes} ->
+        Logger.error("#{@log_prefix} Encountered error: #{operation} #{value} #{changes}")
+    end
+  end
+
+  defp flush_measurements(_) do
+    :ok
   end
 end
