@@ -14,7 +14,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   def start_link(opts) do
     metrics =
       opts[:metrics] ||
-        raise ArgumentError, "the :metrics options is required by #{inspect(__MODULE__)}"
+        raise ArgumentError, "the `:metrics` options is required by #{inspect(__MODULE__)}"
 
     GenServer.start_link(__MODULE__, [metrics: metrics], name: __MODULE__)
   end
@@ -35,7 +35,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   def send_measurement(_) do
     Logger.warn(
-      "#{__MODULE__}: Invalid measurement format, expected map %{element_path: String.t(), method: String.t(), value: integer()}"
+      "#{__MODULE__}: Invalid measurement format, expected map `%{element_path: String.t(), method: String.t(), value: integer()}`"
     )
   end
 
