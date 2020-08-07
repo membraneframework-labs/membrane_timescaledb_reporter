@@ -49,8 +49,10 @@ config :membrane_timescaledb_reporter,
 ```
 
  - `reporter name` - name under which reporter will register its handler inside Telemetry package
- - `flush_timeout` - timeout in miliseconds after which metrics will be flushed, no matter how many of them are currently in the buffer
- - `flush_threshold` - threshold after which cached metrics will be flushed to TimescaleDB  
+
+ Some metrics can be sent hundreds times per second, to avoid database performance issues measurements of certain event names are being cached and later flushed to database in batches.
+ - `flush_timeout` - timeout in miliseconds after which cached measurements will be flushed, no matter how many of them are currently in the buffer
+ - `flush_threshold` - threshold after which cached measurements will be flushed to TimescaleDB  
 
 After setting up config you will need to run `ecto.create` and `ecto.migrate` for `Membrane.Telemetry.TimescaleDB.Repo`:
 ```bash
@@ -58,9 +60,11 @@ mix ecto.create -r Membrane.Telemetry.TimescaleDB.Repo && mix ecto.migrate -r Me
 ```
 
 ## Database Architecture
-Reporter will create two tables:
+Reporter's repository will create three tables:
 
 #### Table: measurements
+**Used for generic measurements**
+
 |      Column     |             Type            |
 |:---------------:|:---------------------------:|
 |       time      | timestamp without time zone |
@@ -69,16 +73,31 @@ Reporter will create two tables:
 |      value      |           integer           |
 
 ### Table: element_paths
+**Helper table for registering element paths**
+
 | Column |          Type          |
 |:------:|:----------------------:|
 |   id   |         bigint         |
 |  path  | character varying(255) |
 
+
+### Table: links
+**Used for managing new link events**
+
+|    Column   |             Type            |
+|:-----------:|:---------------------------:|
+|     time    | timestamp without time zone |
+| parent_path |    character varying(255)   |
+|     from    |    character varying(255)   |
+|      to     |    character varying(255)   |
+|   pad_from  |    character varying(255)   |
+|    pad_to   |    character varying(255)   |
+
+
+Tables `measurements` and `element_paths` are correlated via element_path_id from `measurements` table.
 Full element paths can be quite lengthy and repeat frequently so they are stored in separate table.
 
 Timescale will create hyper table based on `measurements` table and only this table will be chunked and further compressed.
-
-
 
 ## Integration with Grafana 
 Instructions how to create basic TimescaleDB setup and integrate with Grafana can be found [here](GrafanaIntegration.md).

@@ -3,17 +3,32 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
 
   alias Membrane.Telemetry.TimescaleDB.Reporter
 
-  @simple_measurement %{element_path: "path", method: "method", value: 100}
-  @invalid_measurement %{}
+  # event that is being cached by reporter
+  @input_buffer_size [:membrane, :input_buffer, :size]
 
-  setup do
-    # ExUnit by default starts application so to keep Reporter's GenServer state clean just reset it before each test
-    Reporter.reset()
+  # event that is being instatnly flushed to database
+  @new_link [:membrane, :link, :new]
+
+  @simple_measurement %{element_path: "path", method: "method", value: 100}
+  @simple_link %{
+    parent_path: "parent_path",
+    from: "from",
+    to: "to",
+    pad_from: "pad_from",
+    pad_to: "pad_to"
+  }
+
+  defp apply_time(measurement) do
+    Map.put(measurement, :time, NaiveDateTime.utc_now())
   end
 
-  describe "TimescaleDB Reporter" do
-    test "sends and stores well formed measurement" do
-      assert :ok = Reporter.send_measurement(@simple_measurement)
+  describe "TimescaleDB Reporter inside application" do
+    setup do
+      Reporter.reset()
+    end
+
+    test "sends and caches well formed measurement" do
+      assert :ok = Reporter.send_measurement(@input_buffer_size, @simple_measurement)
 
       assert [@simple_measurement] = Reporter.get_cached_measurements()
     end
@@ -23,7 +38,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
       measurements_count = div(threshold, 2)
 
       1..measurements_count
-      |> Enum.each(fn _ -> Reporter.send_measurement(@simple_measurement) end)
+      |> Enum.each(fn _ -> Reporter.send_measurement(@input_buffer_size, @simple_measurement) end)
 
       measurements = Reporter.get_cached_measurements()
       assert measurements_count == Enum.count(measurements)
@@ -33,23 +48,31 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
       threshold = Application.get_env(:membrane_timescaledb_reporter, :flush_threshold, nil)
 
       1..div(threshold, 2)
-      |> Enum.each(fn _ -> Reporter.send_measurement(@simple_measurement) end)
+      |> Enum.each(fn _ -> Reporter.send_measurement(@input_buffer_size, @simple_measurement) end)
 
       measurements = Reporter.get_cached_measurements()
       assert Enum.count(measurements) == div(threshold, 2)
 
       1..div(threshold, 2)
-      |> Enum.each(fn _ -> Reporter.send_measurement(@simple_measurement) end)
+      |> Enum.each(fn _ -> Reporter.send_measurement(@input_buffer_size, @simple_measurement) end)
 
       measurements = Reporter.get_cached_measurements()
       assert Enum.empty?(measurements)
     end
 
     test "flushes on request" do
-      Reporter.send_measurement(@simple_measurement)
+      Reporter.send_measurement(@input_buffer_size, @simple_measurement)
       assert not Enum.empty?(Reporter.get_cached_measurements())
 
       Reporter.flush()
+
+      assert Enum.empty?(Reporter.get_cached_measurements())
+    end
+
+    test "does not cache link measurement" do
+      assert Enum.empty?(Reporter.get_cached_measurements())
+
+      Reporter.send_measurement(@new_link, @simple_link)
 
       assert Enum.empty?(Reporter.get_cached_measurements())
     end

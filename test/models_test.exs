@@ -3,16 +3,23 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
 
   alias Membrane.Telemetry.TimescaleDB.Repo
   alias Membrane.Telemetry.TimescaleDB.Model
-  alias Membrane.Telemetry.TimescaleDB.Model.{Measurement, ElementPath}
+  alias Membrane.Telemetry.TimescaleDB.Model.{Measurement, ElementPath, Link}
 
   @measurement %{element_path: "path", method: "method", value: 10}
+  @link %{
+    parent_path: "pipeline@<480.0>",
+    from: "from element",
+    to: "to element",
+    pad_from: "pad to",
+    pad_to: "pad to"
+  }
 
-  defp apply_time(measurement) do
-    Map.put(measurement, :time, NaiveDateTime.utc_now())
+  defp apply_time(model) do
+    Map.put(model, :time, NaiveDateTime.utc_now())
   end
 
   describe "Model" do
-    test "creates entries in measurements and element_paths tables" do
+    test "creates entries in 'measurements' and 'element_paths' tables" do
       assert Enum.empty?(Repo.all(Measurement))
       assert Enum.empty?(Repo.all(ElementPath))
 
@@ -21,6 +28,14 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
 
       assert Enum.count(Repo.all(Measurement)) == 1
       assert Enum.count(Repo.all(ElementPath)) == 1
+    end
+
+    test "creates Link entry" do
+      assert Enum.empty?(Repo.all(Link))
+
+      assert {:ok, _} = Link.changeset(%Link{}, apply_time(@link)) |> Repo.insert()
+
+      assert Enum.count(Repo.all(Link)) == 1
     end
 
     test "creates ElementPath uniquely" do
@@ -34,10 +49,14 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
       assert Enum.count(Repo.all(Measurement)) == 20
     end
 
-    test "returns error on duplicated measurement" do
+    test "returns error on duplicated Measurement" do
       measurement = apply_time(@measurement)
       result = [measurement, measurement] |> Model.add_all_measurements()
       assert {:error, %Postgrex.Error{postgres: %{code: :unique_violation}}} = result
+    end
+
+    test "returns error on incomplete Link" do
+      assert {:error, %{valid?: false}} = Link.changeset(%Link{}, %{}) |> Repo.insert()
     end
   end
 end

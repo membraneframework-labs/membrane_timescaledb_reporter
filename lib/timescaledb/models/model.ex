@@ -83,6 +83,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
     end
   end
 
+  def add_measurement(measurement) do
+    Measurement.changeset(%Measurement{}, measurement) |> Repo.insert()
+  end
+
   def add_link(link) do
     Link.changeset(%Link{}, link) |> Repo.insert()
   end
