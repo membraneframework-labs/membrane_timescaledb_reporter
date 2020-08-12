@@ -50,7 +50,7 @@ config :membrane_timescaledb_reporter,
 
  - `reporter name` - name under which reporter will register its handler inside Telemetry package
 
- Some metrics can be sent hundreds times per second, to avoid database performance issues measurements of certain event names are being cached and later flushed to database in batches.
+ Some metrics can be sent hundreds times per second, to avoid database performance issues, measurements of certain event names are cached and later flushed to database in batches.
  - `flush_timeout` - timeout in miliseconds after which cached measurements will be flushed, no matter how many of them are currently in the buffer
  - `flush_threshold` - threshold after which cached measurements will be flushed to TimescaleDB  
 
