@@ -1,6 +1,6 @@
 defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   @moduledoc """
-  Receives measurements via `send_measurement/1` then based on event names eventually persists them to TimescaleDB database.
+  Receives measurements via `send_measurement/1` then, based on event names, eventually persists them to TimescaleDB database.
   """
 
   use GenServer
@@ -20,13 +20,13 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   end
 
   @doc """
-  Sends measurement to GenServer which based on event name will eventually persist it to database.
+  Sends measurement to GenServer which, based on event name, will eventually persist it to database.
 
   Logs warning on invalid/unsupported measurement event name or format.
 
   ## Supported events
-    * [:membrane, :input_buffer, :size] - caches measurements to a certain threshold and flushes them to the database via `Membrane.Telemetry.TimescaleDB.Model.add_all_measurements/1`.
-    * [:membrane, :link, :new] - instantly passes measurement to `Membrane.Telemetry.TimescaleDB.Model.add_link/1`.
+    * `[:membrane, :input_buffer, :size]` - caches measurements to a certain threshold and flushes them to the database via `Membrane.Telemetry.TimescaleDB.Model.add_all_measurements/1`.
+    * `[:membrane, :link, :new]` - instantly passes measurement to `Membrane.Telemetry.TimescaleDB.Model.add_link/1`.
   """
   @spec send_measurement(list(atom()), map()) :: :ok
   def send_measurement(event_name, measurement)
@@ -58,7 +58,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     Logger.warn(
       "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{
         inspect(measurement)
-      } is not being supported"
+      } is not supported"
     )
   end
 
