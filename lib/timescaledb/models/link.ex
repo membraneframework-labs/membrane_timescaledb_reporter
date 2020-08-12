@@ -1,4 +1,5 @@
 defmodule Membrane.Telemetry.TimescaleDB.Model.Link do
+  @moduledoc false
   require Logger
   use Ecto.Schema
   import Ecto.Changeset
