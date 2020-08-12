@@ -15,6 +15,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescal
       add(:method, :string, null: false)
       add(:value, :integer, null: false)
     end
+
     create index(:measurements, [:time	, :element_path_id])
 
     create table(:element_paths, primary_key: {:id, :id, autogenerate: true}) do
