@@ -22,5 +22,4 @@ defmodule Membrane.Telemetry.TimescaleDB do
       {:error, :migration_error}
     end
   end
-
 end
