@@ -13,4 +13,13 @@ defmodule Membrane.Telemetry.TimescaleDB do
     opts = [strategy: :one_for_one, name: :membrane_timescaledb_reporter]
     Supervisor.start_link(children, opts)
   end
+
+  @impl true
+  def start_phase(:migrate, :normal, _opts) do
+    if Membrane.Telemetry.TimescaleDB.Release.migrate() do
+      :ok
+    else
+      {:error, :migration_error}
+    end
+  end
 end

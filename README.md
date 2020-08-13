@@ -54,10 +54,9 @@ config :membrane_timescaledb_reporter,
  - `flush_timeout` - timeout in miliseconds after which cached measurements will be flushed, no matter how many of them are currently in the buffer
  - `flush_threshold` - threshold after which cached measurements will be flushed to TimescaleDB  
 
-After setting up config you will need to run `ecto.create` and `ecto.migrate` for `Membrane.Telemetry.TimescaleDB.Repo`:
-```bash
-mix ecto.create -r Membrane.Telemetry.TimescaleDB.Repo && mix ecto.migrate -r Membrane.Telemetry.TimescaleDB.Repo
-```
+
+## Database migrations
+Application will try to perform auto migrations on application start due to `Application.start_phase/3`.
 
 ## Database Architecture
 Reporter's repository will create three tables:
