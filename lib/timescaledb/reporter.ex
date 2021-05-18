@@ -33,24 +33,40 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   def send_measurement(
         [:membrane, :input_buffer, :size] = event_name,
-        %{element_path: path, method: method, value: value} = measurement
+        %{element_path: path, method: method, value: value}
       )
       when is_binary(path) and is_binary(method) and is_integer(value) do
+    measurement = %{
+      element_path: extend_with_os_pid(path),
+      method: method,
+      value: value,
+      time: NaiveDateTime.utc_now()
+    }
+
     GenServer.cast(
       __MODULE__,
-      {:measurement, event_name, Map.put(measurement, :time, NaiveDateTime.utc_now())}
+      {:measurement, event_name, measurement}
     )
   end
 
   def send_measurement(
         [:membrane, :link, :new],
-        %{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to} = link
+        %{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to}
       )
       when is_binary(parent_path) and is_binary(from) and is_binary(to) and is_binary(pad_from) and
              is_binary(pad_to) do
+    link = %{
+      parent_path: extend_with_os_pid(parent_path),
+      from: from,
+      to: to,
+      pad_from: pad_from,
+      pad_to: pad_to,
+      time: NaiveDateTime.utc_now()
+    }
+
     GenServer.cast(
       __MODULE__,
-      {:link, Map.put(link, :time, NaiveDateTime.utc_now())}
+      {:link, link}
     )
   end
 
@@ -168,6 +184,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     )
 
     TelemetryHandler.unregister_handler()
+  end
+
+  defp extend_with_os_pid(path) do
+    String.replace_prefix(path, "pipeline@", "pipeline@#{System.pid()}@")
   end
 
   defp process_measurement(
