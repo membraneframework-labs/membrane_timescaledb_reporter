@@ -33,15 +33,15 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   def send_measurement(
         [:membrane, :input_buffer, :size] = event_name,
-        %{element_path: path, method: method, value: value}
+        %{element_path: path, method: method, value: value} = measurement
       )
       when is_binary(path) and is_binary(method) and is_integer(value) do
-    measurement = %{
-      element_path: extend_with_os_pid(path),
-      method: method,
-      value: value,
-      time: NaiveDateTime.utc_now()
-    }
+    measurement =
+      measurement
+      |> Map.merge(%{
+        element_path: extend_with_os_pid(path),
+        time: NaiveDateTime.utc_now()
+      })
 
     GenServer.cast(
       __MODULE__,
@@ -51,18 +51,16 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   def send_measurement(
         [:membrane, :link, :new],
-        %{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to}
+        %{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to} = link
       )
       when is_binary(parent_path) and is_binary(from) and is_binary(to) and is_binary(pad_from) and
              is_binary(pad_to) do
-    link = %{
-      parent_path: extend_with_os_pid(parent_path),
-      from: from,
-      to: to,
-      pad_from: pad_from,
-      pad_to: pad_to,
-      time: NaiveDateTime.utc_now()
-    }
+    link =
+      link
+      |> Map.merge(%{
+        parent_path: extend_with_os_pid(parent_path),
+        time: NaiveDateTime.utc_now()
+      })
 
     GenServer.cast(
       __MODULE__,

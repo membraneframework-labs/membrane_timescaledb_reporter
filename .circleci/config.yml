@@ -5,7 +5,7 @@ jobs:
       - image:  membrane/membrane:latest
         environment:
           MIX_ENV: test
-      - image: timescale/timescaledb:latest-pg11
+      - image: timescale/timescaledb:1.7.4-pg12
         command: [-cshared_preload_libraries=timescaledb]
         environment:
           POSTGRES_USER: postgres
