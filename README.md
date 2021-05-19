@@ -28,17 +28,18 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   password: "postgres",
   hostname: "localhost",
   chunk_time_interval: "3 minutes",
-  chunk_compress_policy_interval: "1 minute"
+  chunk_compress_policy_interval: "1 minute",
+  log: false
 ```
 
-Attributes worth mentioning are `chunk_time_interval` and
-`chunk_compress_policy_interval`, both are TimescaleDB specific.
- - `chunk_time_interval` is used for hyper table creation, more in [documentation](https://docs.timescale.com/latest/api#hypertable-management)
- - `chunk_compress_policy_interval` is used as time interval for timescale's daemon compressing chunks, more in [documentation](https://docs.timescale.com/latest/api#add_compress_chunks_policy).
+There are two TimescaleDB specific attributes worth mentioning:
+ - `chunk_time_interval` - used for hyper table creation, more in [documentation](https://docs.timescale.com/latest/api#hypertable-management)
+ - `chunk_compress_policy_interval` - used as time interval for timescale's daemon compressing chunks, more in [documentation](https://docs.timescale.com/latest/api#add_compress_chunks_policy).
 
 Adjust them accordingly to your membrane pipeline configuration and
 amount of incoming events. For quick testing shorter intervals might be preferable as metrics can accumulate very fast. 
 
+Last attribute - `log` - if is set to `false`, decreases number of logs for higher readibility and better performance.
 
 Additional reporter options are:
 ```elixir
