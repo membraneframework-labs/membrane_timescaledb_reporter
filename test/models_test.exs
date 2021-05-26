@@ -5,7 +5,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
   alias Membrane.Telemetry.TimescaleDB.Model
   alias Membrane.Telemetry.TimescaleDB.Model.{Measurement, ElementPath, Link}
 
-  @measurement %{element_path: "path", method: "method", value: 10}
+  @measurement %{element_path: "path", metric: "metric", value: 10}
   @link %{
     parent_path: "pipeline@<480.0>",
     from: "from element",

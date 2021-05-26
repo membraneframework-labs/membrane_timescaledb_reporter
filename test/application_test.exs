@@ -3,7 +3,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ApplicationTest do
 
   alias Membrane.Telemetry.TimescaleDB.{TelemetryHandler, Metrics, Reporter}
 
-  @measurement %{element_path: "handler test", method: "testing", value: 1}
+  @measurement %{element_path: "handler test", metric: "testing", value: 1}
 
   describe "Application" do
     setup do

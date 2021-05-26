@@ -69,7 +69,7 @@ Reporter's repository will create three tables:
 |:---------------:|:---------------------------:|
 |       time      | timestamp without time zone |
 | element_path_id |           integer           |
-|      method     |    character varying(255)   |
+|      metric     |    character varying(255)   |
 |      value      |           integer           |
 
 ### Table: element_paths
