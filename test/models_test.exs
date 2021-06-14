@@ -42,7 +42,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
       # create two batches
       1..10 |> Enum.map(fn _ -> apply_time(@measurement) end) |> Model.add_all_measurements()
       1..10 |> Enum.map(fn _ -> apply_time(@measurement) end) |> Model.add_all_measurements()
-
+      IO.inspect(Repo.all(ElementPath))
       assert [element_path] = Repo.all(ElementPath)
       assert element_path.path == @measurement.element_path
 

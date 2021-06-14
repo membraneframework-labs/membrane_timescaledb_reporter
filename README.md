@@ -62,7 +62,7 @@ config :membrane_timescaledb_reporter,
 
 
 ## Database migrations
-Application will try to perform auto migrations on application start due to `Application.start_phase/3`.
+Application will try to perform auto migrations on application start due to `Membrane.Telemetry.TimescaleDB.start_phase/3`.
 
 ## Database Architecture
 Reporter's repository will create three tables:
@@ -111,7 +111,6 @@ Instructions how to create basic TimescaleDB setup and integrate with Grafana ca
 
 Copyright 2020, [Software Mansion](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=membrane)
 
-[![Software Mansion](https://logo.swmansion.com/logo?color=white&variant=desktop&width=200&tag=membrane-github)](
-https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=membrane)
+[![Software Mansion](https://logo.swmansion.com/logo?color=white&variant=desktop&width=200&tag=membrane-github)](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=membrane)
 
 Licensed under the [Apache License, Version 2.0](LICENSE)

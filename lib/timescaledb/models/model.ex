@@ -1,5 +1,7 @@
 defmodule Membrane.Telemetry.TimescaleDB.Model do
-  @moduledoc false
+  @moduledoc """
+  Module responsible for putting data to TimescaleDB.
+  """
 
   require Logger
   import Ecto.Query
@@ -71,6 +73,8 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
       measurements
       |> Enum.map(&%{path: &1.element_path})
       |> Enum.uniq()
+
+    IO.inspect(element_paths)
 
     try do
       Ecto.Multi.new()
