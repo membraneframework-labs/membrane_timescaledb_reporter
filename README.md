@@ -19,8 +19,13 @@ def deps do
 end
 ```
 
+First of all you will need to enable reporting metrics in your `config.exs`:
+```elixir
+config :membrane_core,
+  enable_metrics: true
+```
 
-First of all you will need to provide database information inside your `config.exs` e.g: 
+Additionally, provide database information inside your `config.exs` e.g: 
 ```elixir
 config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   database: "membrane_timescaledb_reporter",
