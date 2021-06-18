@@ -33,13 +33,13 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   def send_measurement(
         [:membrane, :metric, :value] = event_name,
-        %{element_path: path, metric: metric, value: value} = measurement
+        %{component_path: path, metric: metric, value: value} = measurement
       )
       when is_binary(path) and is_binary(metric) and is_integer(value) do
     measurement =
       measurement
       |> Map.merge(%{
-        element_path: extend_with_os_pid(path),
+        component_path: extend_with_os_pid(path),
         time: NaiveDateTime.utc_now()
       })
 

@@ -9,7 +9,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
   # event that is being instatnly flushed to database
   @new_link [:membrane, :link, :new]
 
-  @simple_measurement %{element_path: "path", metric: "metric", value: 100}
+  @simple_measurement %{component_path: "path", metric: "metric", value: 100}
   @simple_link %{
     parent_path: "parent_path",
     from: "from",

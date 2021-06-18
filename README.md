@@ -19,10 +19,10 @@ def deps do
 end
 ```
 
-First of all you will need to enable reporting metrics in your `config.exs`:
+First of all you will need to enable telemetry in your `config.exs`:
 ```elixir
 config :membrane_core,
-  enable_metrics: true
+  enable_telemetry: true
 ```
 
 Additionally, provide database information inside your `config.exs` e.g: 
@@ -70,14 +70,14 @@ Reporter's repository will create three tables:
 #### Table: measurements
 **Used for generic measurements**
 
-|      Column     |             Type            |
-|:---------------:|:---------------------------:|
-|       time      | timestamp without time zone |
-| element_path_id |           integer           |
-|      metric     |    character varying(255)   |
-|      value      |           integer           |
+|      Column       |             Type            |
+|:-----------------:|:---------------------------:|
+|       time        | timestamp without time zone |
+| component_path_id |           integer           |
+|      metric       |    character varying(255)   |
+|      value        |           integer           |
 
-### Table: element_paths
+### Table: component_paths
 **Helper table for registering element paths**
 
 | Column |          Type          |
@@ -99,7 +99,7 @@ Reporter's repository will create three tables:
 |    pad_to   |    character varying(255)   |
 
 
-Tables `measurements` and `element_paths` are correlated via element_path_id from `measurements` table.
+Tables `measurements` and `component_paths` are correlated via component_id from `measurements` table.
 Full element paths can be quite lengthy and repeat frequently so they are stored in separate table.
 
 Timescale will create hyper table based on `measurements` table and only this table will be chunked and further compressed.

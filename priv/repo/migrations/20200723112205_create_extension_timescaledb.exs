@@ -12,7 +12,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescal
     create table(:measurements, primary_key: false) do
       add(:time, :naive_datetime_usec, null: false, primary_key: true)
       add(:element_path_id, :id, null: false, primary_key: true)
-      add(:metric, :string, null: false)
+      add(:method, :string, null: false)
       add(:value, :integer, null: false)
     end
 
@@ -27,7 +27,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescal
     execute("""
     ALTER TABLE measurements SET (
       timescaledb.compress,
-      timescaledb.compress_segmentby = 'element_path_id,metric'
+      timescaledb.compress_segmentby = 'element_path_id,method'
     );
     """)
 
@@ -40,5 +40,5 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescal
     drop table(:measurements)
     execute("DROP EXTENSION IF EXISTS timescaledb CASCADE")
   end
-
+  
 end
