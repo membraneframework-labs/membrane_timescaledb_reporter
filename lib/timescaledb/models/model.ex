@@ -74,8 +74,6 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
       |> Enum.map(&%{path: &1.element_path})
       |> Enum.uniq()
 
-    IO.inspect(element_paths)
-
     try do
       Ecto.Multi.new()
       |> insert_all_element_paths(element_paths)

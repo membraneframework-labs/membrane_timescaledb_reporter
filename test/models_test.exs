@@ -14,8 +14,13 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
     pad_to: "pad to"
   }
 
-  defp apply_time(model) do
-    Map.put(model, :time, NaiveDateTime.utc_now())
+  # applying offset can ensure that any two measurements will be identical
+  defp apply_time(model, offset \\ 0) do
+    time =
+      NaiveDateTime.utc_now()
+      |> NaiveDateTime.add(offset, :microsecond)
+
+    Map.put(model, :time, time)
   end
 
   describe "Model" do
@@ -40,9 +45,8 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
 
     test "creates ElementPath uniquely" do
       # create two batches
-      1..10 |> Enum.map(fn _ -> apply_time(@measurement) end) |> Model.add_all_measurements()
-      1..10 |> Enum.map(fn _ -> apply_time(@measurement) end) |> Model.add_all_measurements()
-      IO.inspect(Repo.all(ElementPath))
+      1..10 |> Enum.map(fn i -> apply_time(@measurement, i) end) |> Model.add_all_measurements()
+      1..10 |> Enum.map(fn i -> apply_time(@measurement, i) end) |> Model.add_all_measurements()
       assert [element_path] = Repo.all(ElementPath)
       assert element_path.path == @measurement.element_path
 
