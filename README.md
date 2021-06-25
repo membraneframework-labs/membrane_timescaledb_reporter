@@ -19,8 +19,13 @@ def deps do
 end
 ```
 
+First of all you will need to enable telemetry in your `config.exs`:
+```elixir
+config :membrane_core,
+  enable_telemetry: true
+```
 
-First of all you will need to provide database information inside your `config.exs` e.g: 
+Additionally, provide database information inside your `config.exs` e.g: 
 ```elixir
 config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   database: "membrane_timescaledb_reporter",
@@ -57,7 +62,7 @@ config :membrane_timescaledb_reporter,
 
 
 ## Database migrations
-Application will try to perform auto migrations on application start due to `Application.start_phase/3`.
+Application will try to perform auto migrations on application start due to `Membrane.Telemetry.TimescaleDB.start_phase/3`.
 
 ## Database Architecture
 Reporter's repository will create three tables:
@@ -65,14 +70,14 @@ Reporter's repository will create three tables:
 #### Table: measurements
 **Used for generic measurements**
 
-|      Column     |             Type            |
-|:---------------:|:---------------------------:|
-|       time      | timestamp without time zone |
-| element_path_id |           integer           |
-|      method     |    character varying(255)   |
-|      value      |           integer           |
+|      Column       |             Type            |
+|:-----------------:|:---------------------------:|
+|       time        | timestamp without time zone |
+| component_path_id |           integer           |
+|      metric       |    character varying(255)   |
+|      value        |           integer           |
 
-### Table: element_paths
+### Table: component_paths
 **Helper table for registering element paths**
 
 | Column |          Type          |
@@ -94,7 +99,7 @@ Reporter's repository will create three tables:
 |    pad_to   |    character varying(255)   |
 
 
-Tables `measurements` and `element_paths` are correlated via element_path_id from `measurements` table.
+Tables `measurements` and `component_paths` are correlated via component_id from `measurements` table.
 Full element paths can be quite lengthy and repeat frequently so they are stored in separate table.
 
 Timescale will create hyper table based on `measurements` table and only this table will be chunked and further compressed.
@@ -106,7 +111,6 @@ Instructions how to create basic TimescaleDB setup and integrate with Grafana ca
 
 Copyright 2020, [Software Mansion](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=membrane)
 
-[![Software Mansion](https://logo.swmansion.com/logo?color=white&variant=desktop&width=200&tag=membrane-github)](
-https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=membrane)
+[![Software Mansion](https://logo.swmansion.com/logo?color=white&variant=desktop&width=200&tag=membrane-github)](https://swmansion.com/?utm_source=git&utm_medium=readme&utm_campaign=membrane)
 
 Licensed under the [Apache License, Version 2.0](LICENSE)

@@ -40,5 +40,5 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescal
     drop table(:measurements)
     execute("DROP EXTENSION IF EXISTS timescaledb CASCADE")
   end
-
+  
 end

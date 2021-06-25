@@ -67,7 +67,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  path,\n  value AS \"value\"\nFROM measurements m JOIN element_paths ep on m.element_path_id = ep.id\nWHERE\n  $__timeFilter(\"time\") and method = 'take_and_demand'\nGROUP BY 1, path, value\nORDER BY 1",
+          "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  path,\n  value AS \"value\"\nFROM measurements m JOIN component_paths ep on m.component_path_id = ep.id\nWHERE\n  $__timeFilter(\"time\") and method = 'take_and_demand'\nGROUP BY 1, path, value\nORDER BY 1",
           "refId": "A",
           "select": [
             [
@@ -194,7 +194,7 @@
           ],
           "metricColumn": "method",
           "rawQuery": true,
-          "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  path,\n  value AS \"value\"\nFROM measurements m JOIN element_paths ep on m.element_path_id = ep.id\nWHERE\n  $__timeFilter(\"time\") and method = 'store'\nGROUP BY 1, path, value\nORDER BY 1",
+          "rawSql": "SELECT\n  $__timeGroupAlias(\"time\",$__interval),\n  path,\n  value AS \"value\"\nFROM measurements m JOIN component_paths ep on m.component_path_id = ep.id\nWHERE\n  $__timeFilter(\"time\") and method = 'store'\nGROUP BY 1, path, value\nORDER BY 1",
           "refId": "A",
           "select": [
             [

@@ -25,21 +25,21 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   Logs warning on invalid/unsupported measurement event name or format.
 
   ## Supported events
-    * `[:membrane, :input_buffer, :size]` - caches measurements to a certain threshold and flushes them to the database via `Membrane.Telemetry.TimescaleDB.Model.add_all_measurements/1`.
+    * `[:membrane, :metric, :value]` - caches measurements to a certain threshold and flushes them to the database via `Membrane.Telemetry.TimescaleDB.Model.add_all_measurements/1`.
     * `[:membrane, :link, :new]` - instantly passes measurement to `Membrane.Telemetry.TimescaleDB.Model.add_link/1`.
   """
   @spec send_measurement(list(atom()), map()) :: :ok
   def send_measurement(event_name, measurement)
 
   def send_measurement(
-        [:membrane, :input_buffer, :size] = event_name,
-        %{element_path: path, method: method, value: value} = measurement
+        [:membrane, :metric, :value] = event_name,
+        %{component_path: path, metric: metric, value: value} = measurement
       )
-      when is_binary(path) and is_binary(method) and is_integer(value) do
+      when is_binary(path) and is_binary(metric) and is_integer(value) do
     measurement =
       measurement
       |> Map.merge(%{
-        element_path: extend_with_os_pid(path),
+        component_path: extend_with_os_pid(path),
         time: NaiveDateTime.utc_now()
       })
 
@@ -70,9 +70,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   def send_measurement(event_name, measurement) do
     Logger.warn(
-      "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{
-        inspect(measurement)
-      } is not supported"
+      "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{inspect(measurement)} is not supported"
     )
   end
 

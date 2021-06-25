@@ -43,7 +43,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
       {:telemetry, "~> 0.4"},
       {:postgrex, ">= 0.0.0"},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.22", only: :dev, runtime: false}
     ]
   end
 
@@ -61,7 +61,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
   defp docs do
     [
       main: "readme",
-      extras: ["README.md", "GrafanaIntegration.md"],
+      extras: ["README.md", "GrafanaIntegration.md", LICENSE: [title: "License"]],
       source_ref: "v#{@version}",
       nest_modules_by_prefix: [Membrane.Telemetry.TimescaleDB]
     ]

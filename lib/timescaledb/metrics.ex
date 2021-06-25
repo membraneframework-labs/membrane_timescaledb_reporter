@@ -11,7 +11,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Metrics do
   Metric registration type.
 
   * `event_name` - event prefix to listen on
-  * `cache?` - whether to cache incoming measurements before flushing (recomended for high frequency measurements)
+  * `cache?` - whether to cache incoming measurements before flushing (recommended for high frequency measurements)
   """
   @type metric_t :: %{
           event_name: event_name_t(),
@@ -19,13 +19,13 @@ defmodule Membrane.Telemetry.TimescaleDB.Metrics do
         }
 
   @doc """
-  Returns list of metrics hanled by TimescaleDB reporter.
+  Returns list of metrics handled by TimescaleDB reporter.
   """
   @spec all() :: list(metric_t())
   def all() do
     [
       %{
-        event_name: [:membrane, :input_buffer, :size],
+        event_name: [:membrane, :metric, :value],
         cache?: true
       },
       %{
