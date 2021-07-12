@@ -27,8 +27,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   ## Supported events
     * `[:membrane, :metric, :value]` - caches measurements to a certain threshold and flushes them to the database via `Membrane.Telemetry.TimescaleDB.Model.add_all_measurements/1`.
     * `[:membrane, :link, :new]` - instantly passes measurement to `Membrane.Telemetry.TimescaleDB.Model.add_link/1`.
-    * `[:membrane, :pipeline | :bin | :element, :inti]` - instantly persists events with `Membrane.Telemetry.TimescaleDB.Model.add_init_event/1`.
-    * `[:membrane, :pipeline | :bin | :element, :terminate]` - instantly persists events with `Membrane.Telemetry.TimescaleDB.Model.add_terminate_event/1`.
+    * `[:membrane, :pipeline | :bin | :element, :init | :terminate]` - instantly persists information about component being initialized or terminated
   """
   @spec send_measurement(list(atom()), map()) :: :ok
   def send_measurement(event_name, measurement)
