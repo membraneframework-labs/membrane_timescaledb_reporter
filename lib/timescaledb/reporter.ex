@@ -82,9 +82,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   def send_measurement(event_name, measurement) do
     Logger.warn(
-      "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{
-        inspect(measurement)
-      } is not supported"
+      "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{inspect(measurement)} is not supported"
     )
   end
 
