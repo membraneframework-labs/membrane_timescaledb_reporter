@@ -69,7 +69,6 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     )
   end
 
-  # FIXME: those are not event close to being measurements, those are pure events
   def send_measurement([:membrane, element_type, event_type], %{path: _path} = measurement)
       when element_type in [:pipeline, :bin, :element] and event_type in [:init, :terminate] do
     GenServer.cast(
