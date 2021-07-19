@@ -8,8 +8,8 @@ defmodule Membrane.Telemetry.TimescaleDB.Metrics do
   @type event_name_t :: [atom(), ...]
 
   @type metrics_t :: %{
-    required(event_name_t) => boolean()
-  }
+          required(event_name_t) => boolean()
+        }
 
   @doc """
   Returns a map of metrics handled by TimescaleDB reporter. Map's key corresponds to event name
@@ -23,7 +23,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Metrics do
       [:membrane, :bin, :init] => false,
       [:membrane, :bin, :terminate] => false,
       [:membrane, :element, :init] => false,
-      [:membrane, :element, :terminate] => false,
+      [:membrane, :element, :terminate] => false
     }
   end
 end
