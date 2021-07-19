@@ -25,11 +25,11 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
 
   Metrics should be of format `t:Membrane.Telemetry.TimescaleDB.Metrics.metric_t/0`.
   """
-  @spec register_metrics(list(map())) :: :ok | {:error, any}
+  @spec register_metrics(map()) :: :ok | {:error, any}
   def register_metrics(metrics) do
     :telemetry.attach_many(
       get_handler_name(),
-      metrics |> Enum.map(& &1.event_name),
+      metrics |> Map.keys(),
       &handle_event/4,
       nil
     )

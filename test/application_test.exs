@@ -13,16 +13,15 @@ defmodule Membrane.Telemetry.TimescaleDB.ApplicationTest do
     test "attaches telemetry handler on start" do
       registered_handlers =
         Metrics.all()
-        |> Enum.flat_map(&:telemetry.list_handlers(&1.event_name))
+        |> Map.keys()
+        |> Enum.flat_map(&:telemetry.list_handlers(&1))
         |> Enum.map(& &1.id)
 
       assert TelemetryHandler.get_handler_name() in registered_handlers
     end
 
     test "handles measurement" do
-      metric = Reporter.get_metrics() |> List.first()
-
-      :telemetry.execute(metric.event_name, @measurement)
+      :telemetry.execute([:membrane, :metric, :value], @measurement)
 
       assert [@measurement] = Reporter.get_cached_measurements()
     end

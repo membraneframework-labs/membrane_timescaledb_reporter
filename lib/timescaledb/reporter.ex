@@ -111,7 +111,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   @doc """
   Returns list of metrics registered by GenServer.
   """
-  @spec get_metrics() :: list(list(atom()))
+  @spec get_metrics() :: map()
   def get_metrics() do
     GenServer.call(__MODULE__, :metrics)
   end
@@ -140,7 +140,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
         {:measurement, event_name, measurement},
         %{metrics: metrics} = state
       ) do
-    cache? = Enum.find(metrics, %{cache?: false}, &(&1.event_name == event_name)).cache?
+    cache? = event_name == [:membrane, :metric, :value]
     state = process_measurement({measurement, cache?}, state)
     {:noreply, state}
   end
@@ -159,7 +159,11 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   # ignore pipeline events
   def handle_cast({:lifecycle_event, type, measurement}, state) when type in [:bin, :element] do
-    case Model.add_element_event(Map.put(measurement, :time, NaiveDateTime.utc_now())) do
+    case Model.add_element_event(
+           measurement
+           |> Map.put(:time, NaiveDateTime.utc_now())
+           |> Map.update!(:path, &extend_with_os_pid/1)
+         ) do
       {:ok, _} ->
         Logger.debug("#{@log_prefix} Added #{type} event")
 

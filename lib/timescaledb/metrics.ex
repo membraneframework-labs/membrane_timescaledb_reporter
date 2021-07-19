@@ -7,37 +7,23 @@ defmodule Membrane.Telemetry.TimescaleDB.Metrics do
 
   @type event_name_t :: [atom(), ...]
 
-  @typedoc """
-  Metric registration type.
-
-  * `event_name` - event prefix to listen on
-  * `cache?` - whether to cache incoming measurements before flushing (recommended for high frequency measurements)
-  """
-  @type metric_t :: %{
-          event_name: event_name_t(),
-          cache?: boolean()
-        }
+  @type metrics_t :: %{
+    required(event_name_t) => boolean()
+  }
 
   @doc """
-  Returns list of metrics handled by TimescaleDB reporter.
+  Returns a map of metrics handled by TimescaleDB reporter. Map's key corresponds to event name
+  and the value is a boolean telling if the metrics should be cached so that it can be inserted in batches.
   """
-  @spec all() :: list(metric_t())
+  @spec all() :: metrics_t()
   def all() do
-    [
-      %{
-        event_name: [:membrane, :metric, :value],
-        cache?: true
-      },
-      %{
-        event_name: [:membrane, :link, :new],
-        cache?: false
-      }
-    ] ++
-      Enum.flat_map([:bin, :element], fn type ->
-        [
-          %{event_name: [:membrane, type, :init], cache?: false},
-          %{event_name: [:membrane, type, :terminate], cache?: false}
-        ]
-      end)
+    %{
+      [:membrane, :metric, :value] => true,
+      [:membrane, :link, :new] => false,
+      [:membrane, :bin, :init] => false,
+      [:membrane, :bin, :terminate] => false,
+      [:membrane, :element, :init] => false,
+      [:membrane, :element, :terminate] => false,
+    }
   end
 end
