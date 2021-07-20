@@ -29,12 +29,16 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
 
   @spec add_measurement(map()) :: {:ok, Measurement.t()} | {:error, Ecto.Changeset.t()}
   def add_measurement(measurement) do
-    Measurement.changeset(%Measurement{}, measurement) |> Repo.insert()
+    %Measurement{}
+    |> Measurement.changeset(measurement)
+    |> Repo.insert()
   end
 
   @spec add_link(map()) :: {:ok, Link.t()} | {:error, Ecto.Changeset.t()}
   def add_link(link) do
-    Link.changeset(%Link{}, link) |> Repo.insert()
+    %Link{}
+    |> Link.changeset(link)
+    |> Repo.insert()
   end
 
   @spec add_element_event(map()) :: {:ok, Element.t()} | {:error, Ecto.Changeset.t()}
