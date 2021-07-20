@@ -1,8 +1,16 @@
 defmodule Membrane.Telemetry.TimescaleDB.Model.Link do
-  @moduledoc false
-  require Logger
+  @moduledoc """
+  Module representing a single link between membrane bins/elements.
+
+  Each link is represented by a parent path of the linked elements,
+  from/to elements names and on what pads of the elements the link gets created.
+  """
+
   use Ecto.Schema
+
   import Ecto.Changeset
+
+  require Logger
 
   @primary_key false
   schema "links" do

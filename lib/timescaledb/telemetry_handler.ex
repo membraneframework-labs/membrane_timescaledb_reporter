@@ -29,7 +29,7 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   def register_metrics(metrics) do
     :telemetry.attach_many(
       get_handler_name(),
-      metrics |> Map.keys(),
+      Map.keys(metrics),
       &handle_event/4,
       nil
     )

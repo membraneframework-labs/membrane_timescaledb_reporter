@@ -1,7 +1,12 @@
 defmodule Membrane.Telemetry.TimescaleDB.Model.Measurement do
-  @moduledoc false
+  @moduledoc """
+  Model representing a single measurement of an arbitrary metric.
 
+  Besides metric name and measurement value, the record takes a component_path_id to identify the source
+  of the measurement, for more go see `ComponentPath` model's doc.
+  """
   use Ecto.Schema
+
   import Ecto.Changeset
 
   @primary_key false

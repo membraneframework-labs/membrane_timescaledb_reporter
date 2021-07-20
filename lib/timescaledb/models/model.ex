@@ -3,10 +3,43 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
   Module responsible for putting data to TimescaleDB.
   """
 
-  require Logger
-  import Ecto.Query
   alias Membrane.Telemetry.TimescaleDB.Repo
   alias Membrane.Telemetry.TimescaleDB.Model.{Element, Measurement, ComponentPath, Link}
+
+  import Ecto.Query
+
+  require Logger
+
+  def add_all_measurements(measurements) do
+    component_paths =
+      measurements
+      |> Enum.map(&%{path: &1.component_path})
+      |> Enum.uniq()
+
+    try do
+      Ecto.Multi.new()
+      |> insert_all_component_paths(component_paths)
+      |> fetch_remaining_paths(component_paths)
+      |> insert_all_measurements(measurements)
+      |> Repo.transaction()
+    rescue
+      error in Postgrex.Error -> {:error, error}
+    end
+  end
+
+  def add_measurement(measurement) do
+    Measurement.changeset(%Measurement{}, measurement) |> Repo.insert()
+  end
+
+  def add_link(link) do
+    Link.changeset(%Link{}, link) |> Repo.insert()
+  end
+
+  def add_element_event(element) do
+    %Element{}
+    |> Element.changeset(element)
+    |> Repo.insert()
+  end
 
   # inserts given element paths if they don't exist and returns them, otherwise does nothing
   defp insert_all_component_paths(multi, component_paths) do
@@ -66,34 +99,5 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
       {inserted, _} = repo.insert_all(Measurement, measurements)
       {:ok, inserted}
     end)
-  end
-
-  def add_all_measurements(measurements) do
-    component_paths =
-      measurements
-      |> Enum.map(&%{path: &1.component_path})
-      |> Enum.uniq()
-
-    try do
-      Ecto.Multi.new()
-      |> insert_all_component_paths(component_paths)
-      |> fetch_remaining_paths(component_paths)
-      |> insert_all_measurements(measurements)
-      |> Repo.transaction()
-    rescue
-      error in Postgrex.Error -> {:error, error}
-    end
-  end
-
-  def add_measurement(measurement) do
-    Measurement.changeset(%Measurement{}, measurement) |> Repo.insert()
-  end
-
-  def add_link(link) do
-    Link.changeset(%Link{}, link) |> Repo.insert()
-  end
-
-  def add_element_event(element) do
-    Element.changeset(%Element{}, element) |> Repo.insert()
   end
 end
