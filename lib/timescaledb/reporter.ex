@@ -4,9 +4,11 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   """
 
   use GenServer
-  require Logger
+
   alias Membrane.Telemetry.TimescaleDB.Model
   alias Membrane.Telemetry.TimescaleDB.TelemetryHandler
+
+  require Logger
 
   @log_prefix "[#{__MODULE__}]"
 
@@ -244,7 +246,11 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     state
   end
 
-  defp flush_measurements(measurements) when length(measurements) > 0 do
+  defp flush_measurements([]) do
+    :ok
+  end
+
+  defp flush_measurements(measurements) do
     case Model.add_all_measurements(measurements) do
       {:ok, %{insert_all_measurements: inserted}} ->
         Logger.debug("#{@log_prefix} Flushed #{inserted} measurements")
@@ -252,9 +258,5 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
       {:error, operation, value, changes} ->
         Logger.error("#{@log_prefix} Encountered error: #{operation} #{value} #{changes}")
     end
-  end
-
-  defp flush_measurements(_) do
-    :ok
   end
 end

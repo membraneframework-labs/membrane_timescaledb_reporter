@@ -18,6 +18,7 @@ jobs:
       - run: mix deps.get
       - run: mix format --check-formatted
       - run: mix compile --force --warnings-as-errors
+      - run: mix credo
       - run:
           name: install dockerize
           command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz

@@ -3,8 +3,9 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   Declares `handle_event/4` and metrics register functionality required for :telemetry package.
   """
 
-  require Logger
   alias Membrane.Telemetry.TimescaleDB.Reporter
+
+  require Logger
 
   @doc """
   Handles event names previously registered by `register_metrics/1` and passes them to `Membrane.Telemetry.TimescaleDB.Reporter.send_measurement/2`.

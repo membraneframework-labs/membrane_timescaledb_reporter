@@ -43,6 +43,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
       {:telemetry, "~> 0.4"},
       {:postgrex, ">= 0.0.0"},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:credo, "~> 1.5", only: :dev, runtime: false},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false}
     ]
   end

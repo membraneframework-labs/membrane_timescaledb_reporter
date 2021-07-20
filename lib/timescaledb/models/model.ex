@@ -2,14 +2,14 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
   @moduledoc """
   Module responsible for putting data to TimescaleDB.
   """
+  import Ecto.Query
 
   alias Membrane.Telemetry.TimescaleDB.Repo
   alias Membrane.Telemetry.TimescaleDB.Model.{Element, Measurement, ComponentPath, Link}
 
-  import Ecto.Query
-
   require Logger
 
+  @spec add_all_measurements(list(map())) :: {:ok | :error, any()}
   def add_all_measurements(measurements) do
     component_paths =
       measurements
@@ -27,14 +27,17 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
     end
   end
 
+  @spec add_measurement(map()) :: {:ok, Measurement.t()} | {:error, Ecto.Changeset.t()}
   def add_measurement(measurement) do
     Measurement.changeset(%Measurement{}, measurement) |> Repo.insert()
   end
 
+  @spec add_link(map()) :: {:ok, Link.t()} | {:error, Ecto.Changeset.t()}
   def add_link(link) do
     Link.changeset(%Link{}, link) |> Repo.insert()
   end
 
+  @spec add_element_event(map()) :: {:ok, Element.t()} | {:error, Ecto.Changeset.t()}
   def add_element_event(element) do
     %Element{}
     |> Element.changeset(element)

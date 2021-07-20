@@ -38,7 +38,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
       measurements_count = div(threshold, 2)
 
       1..measurements_count
-      |> Enum.each(fn _ -> Reporter.send_measurement(@metric, @simple_measurement) end)
+      |> Enum.each(fn _idx -> Reporter.send_measurement(@metric, @simple_measurement) end)
 
       measurements = Reporter.get_cached_measurements()
       assert measurements_count == Enum.count(measurements)
@@ -48,13 +48,13 @@ defmodule Membrane.Telemetry.TimescaleDB.ReporterTest do
       threshold = Application.get_env(:membrane_timescaledb_reporter, :flush_threshold, nil)
 
       1..div(threshold, 2)
-      |> Enum.each(fn _ -> Reporter.send_measurement(@metric, @simple_measurement) end)
+      |> Enum.each(fn _idx -> Reporter.send_measurement(@metric, @simple_measurement) end)
 
       measurements = Reporter.get_cached_measurements()
       assert Enum.count(measurements) == div(threshold, 2)
 
       1..div(threshold, 2)
-      |> Enum.each(fn _ -> Reporter.send_measurement(@metric, @simple_measurement) end)
+      |> Enum.each(fn _idx -> Reporter.send_measurement(@metric, @simple_measurement) end)
 
       measurements = Reporter.get_cached_measurements()
       assert Enum.empty?(measurements)

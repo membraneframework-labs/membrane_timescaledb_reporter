@@ -12,6 +12,12 @@ defmodule Membrane.Telemetry.TimescaleDB.Model.Element do
 
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{
+          time: NaiveDateTime.t(),
+          path: String.t(),
+          terminated: boolean()
+        }
+
   @primary_key false
   schema "elements" do
     field(:time, :naive_datetime_usec)
@@ -19,6 +25,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Model.Element do
     field(:terminated, :boolean)
   end
 
+  @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(schema, params) do
     schema
     |> cast(params, [:time, :path, :terminated])

@@ -1,4 +1,5 @@
 defmodule Membrane.Telemetry.TimescaleDB.Release do
+  @moduledoc false
   require Logger
 
   @app :membrane_timescaledb_reporter

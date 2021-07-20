@@ -15,11 +15,16 @@ defmodule Membrane.Telemetry.TimescaleDB.Model.ComponentPath do
 
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{
+          path: String.t()
+        }
+
   @primary_key {:id, :id, autogenerate: true}
   schema "component_paths" do
     field(:path, :string)
   end
 
+  @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(schema, params) do
     schema
     |> cast(params, [:path])

@@ -12,6 +12,15 @@ defmodule Membrane.Telemetry.TimescaleDB.Model.Link do
 
   require Logger
 
+  @type t :: %__MODULE__{
+          time: NaiveDateTime.t(),
+          parent_path: String.t(),
+          from: String.t(),
+          to: String.t(),
+          pad_from: String.t(),
+          pad_to: String.t()
+        }
+
   @primary_key false
   schema "links" do
     field(:time, :naive_datetime_usec)
@@ -22,6 +31,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Model.Link do
     field(:pad_to, :string)
   end
 
+  @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(schema, params) do
     schema
     |> cast(params, [:time, :parent_path, :from, :to, :pad_from, :pad_to])
