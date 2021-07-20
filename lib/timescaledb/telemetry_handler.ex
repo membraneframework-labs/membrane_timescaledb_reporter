@@ -24,7 +24,7 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   Registers given metrics by attaching `handle_event/4` to :telemetry package.
   Handler is being attached with name returned by `get_handler_name/0`.
 
-  Metrics should be of format `t:Membrane.Telemetry.TimescaleDB.Metrics.metric_t/0`.
+  Metrics should be of format specified by membrane's core.
   """
   @spec register_metrics(map()) :: :ok | {:error, any}
   def register_metrics(metrics) do
