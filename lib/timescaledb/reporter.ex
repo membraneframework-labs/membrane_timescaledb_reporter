@@ -138,7 +138,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   @impl true
   def handle_cast(
         {:measurement, event_name, measurement},
-        %{metrics: metrics} = state
+        state
       ) do
     cache? = event_name == [:membrane, :metric, :value]
     state = process_measurement({measurement, cache?}, state)
