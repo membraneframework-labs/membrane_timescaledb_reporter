@@ -1,5 +1,7 @@
 defmodule Membrane.Telemetry.TimescaleDB.RepoCase do
+  @moduledoc false
   use ExUnit.CaseTemplate
+
   alias Membrane.Telemetry.TimescaleDB.Repo
 
   using do

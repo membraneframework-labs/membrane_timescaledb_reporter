@@ -1,14 +1,17 @@
 defmodule Membrane.Telemetry.TimescaleDB.Release do
+  @moduledoc """
+  Utility module for auto migration.
+  """
   require Logger
 
   @app :membrane_timescaledb_reporter
 
-  @spec migrate :: boolean
   @doc """
   Migrates all configured repos.
 
   Returns true if all repositories migrated successfully, returns false otherwise.
   """
+  @spec migrate() :: boolean()
   def migrate do
     repos()
     |> Enum.map(fn repo ->

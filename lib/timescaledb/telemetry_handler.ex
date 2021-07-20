@@ -3,8 +3,9 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   Declares `handle_event/4` and metrics register functionality required for :telemetry package.
   """
 
-  require Logger
   alias Membrane.Telemetry.TimescaleDB.Reporter
+
+  require Logger
 
   @doc """
   Handles event names previously registered by `register_metrics/1` and passes them to `Membrane.Telemetry.TimescaleDB.Reporter.send_measurement/2`.
@@ -23,13 +24,13 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   Registers given metrics by attaching `handle_event/4` to :telemetry package.
   Handler is being attached with name returned by `get_handler_name/0`.
 
-  Metrics should be of format `t:Membrane.Telemetry.TimescaleDB.Metrics.metric_t/0`.
+  Metrics should be of format specified by membrane's core.
   """
-  @spec register_metrics(list(map())) :: :ok | {:error, any}
+  @spec register_metrics(map()) :: :ok | {:error, any}
   def register_metrics(metrics) do
     :telemetry.attach_many(
       get_handler_name(),
-      metrics |> Enum.map(& &1.event_name),
+      Map.keys(metrics),
       &handle_event/4,
       nil
     )
