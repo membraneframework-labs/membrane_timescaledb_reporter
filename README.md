@@ -7,7 +7,6 @@ Reporter attaches itself to [Telemetry package](https://hex.pm/packages/telemetr
  ### TODO
  - upgrade TimescaleDB to 2.*,
  - fix config so that users don't have to configure `ecto_repos`
- - update readme after integrating changes from `membrane_core/init-and-temrinate-events`
 
 ## Requirements
  - PostgreSQL server instance compatible with TimescaleDB extension.
@@ -18,12 +17,9 @@ Reporter attaches itself to [Telemetry package](https://hex.pm/packages/telemetr
 
 To make use of the reporter you should add it as a dependency in your application along with `membrane_core`.
 
-**IMPORTANT:** As for now, for the dashboard to work properly it is required to use `init-and-temrinate-events` branch of `membrane_core`.
-
 ```elixir
 def deps do
   [
-    {:membrane_core, github: "membraneframework/membrane_core", branch: "init-and-temrinate-events", override: true},
     {:membrane_timescaledb_reporter, "~> 0.1.0"}
   ]
 end
