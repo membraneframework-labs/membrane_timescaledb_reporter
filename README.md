@@ -4,22 +4,26 @@ TimescaleDB metrics reporter for telemetry events emitted by [Membrane Core](htt
 
 Reporter attaches itself to [Telemetry package](https://hex.pm/packages/telemetry) and listens for events declared and documented in Membrane Core's module `Membrane.Telemetry`.
 
+ ### TODO
+ - upgrade TimescaleDB to 2.*,
+ - fix config so that users don't have to configure `ecto_repos`
+ - update readme after integrating changes from `membrane_core/init-and-temrinate-events`
+
 ## Requirements
  - PostgreSQL server instance compatible with TimescaleDB extension.
  
- ** IMPORTANT **
- This reporter is only compatible with TimescaleDB version < 2.0. Make sure to use latest 1.* version.
- 
- ### TODO
- Upgrade TimescaleDB to 2.*.
+ **IMPORTANT:** This reporter is only compatible with TimescaleDB version < 2.0. Make sure to use latest 1.* version.
 
 ## Installation
 
 To make use of the reporter you should add it as a dependency in your application along with `membrane_core`.
 
+**IMPORTANT:** As for now, for the dashboard to work properly it is required to use `init-and-temrinate-events` branch of `membrane_core`.
+
 ```elixir
 def deps do
   [
+    {:membrane_core, github: "membraneframework/membrane_core", branch: "init-and-temrinate-events", override: true},
     {:membrane_timescaledb_reporter, "~> 0.1.0"}
   ]
 end
@@ -41,6 +45,9 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   chunk_time_interval: "3 minutes",
   chunk_compress_policy_interval: "1 minute",
   log: false
+
+config :membrane_timescaledb_reporter, 
+  ecto_repos: [Membrane.Telemetry.TimescaleDB.Repo]
 ```
 
 There are two TimescaleDB specific attributes worth mentioning:
