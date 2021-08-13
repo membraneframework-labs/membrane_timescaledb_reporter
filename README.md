@@ -4,7 +4,7 @@ TimescaleDB metrics reporter for telemetry events emitted by [Membrane Core](htt
 
 Reporter attaches itself to [Telemetry package](https://hex.pm/packages/telemetry) and listens for events declared and documented in Membrane Core's module `Membrane.Telemetry`.
 
- ### TODO
+ TODO:
  - upgrade TimescaleDB to 2.*,
  - fix config so that users don't have to configure `ecto_repos`
 
