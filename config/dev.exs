@@ -5,8 +5,8 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  chunk_time_interval: "3 minutes",
-  chunk_compress_policy_interval: "1 minute"
+  chunk_time_interval: "10 minutes",
+  chunk_compress_policy_interval: "10 minutes"
 
 config :membrane_timescaledb_reporter, ecto_repos: [Membrane.Telemetry.TimescaleDB.Repo]
 

@@ -8,8 +8,8 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   password: "postgres",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox,
-  chunk_time_interval: "3 minutes",
-  chunk_compress_policy_interval: "1 minute"
+  chunk_time_interval: "10 minutes",
+  chunk_compress_policy_interval: "10 minutes"
 
 config :membrane_timescaledb_reporter,
   reporter_name: "membrane-timescaledb-handler",

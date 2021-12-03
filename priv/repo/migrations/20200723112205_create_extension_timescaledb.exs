@@ -3,8 +3,8 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescal
 
   alias Membrane.Telemetry.TimescaleDB.Repo
 
-  @chunk_time_interval Application.get_env(:membrane_timescaledb_reporter, Repo)[:chunk_time_interval] || "1 minute"
-  @chunk_compress_policy_interval Application.get_env(:membrane_timescaledb_reporter,Repo)[:chunk_compress_policy_interval] || "1 minute"
+  @chunk_time_interval Application.get_env(:membrane_timescaledb_reporter, Repo)[:chunk_time_interval] || "10 minutes"
+  @chunk_compress_policy_interval Application.get_env(:membrane_timescaledb_reporter,Repo)[:chunk_compress_policy_interval] || "10 minutes"
 
   def up() do
     create table(:component_paths, primary_key: {:id, :id, autogenerate: true}) do
@@ -32,7 +32,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Repo.Migrations.CreateExtensionTimescal
     );
     """)
 
-    execute("SELECT add_compress_chunks_policy('measurements', INTERVAL '#{@chunk_compress_policy_interval}')")
+    execute("SELECT add_compression_policy('measurements', INTERVAL '#{@chunk_compress_policy_interval}')")
   end
 
 
