@@ -39,6 +39,8 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   log: false
 ```
 
+**IMPORTANT:  Reporter will try to perform the migration automatically during reporter's application startup.**
+
 For convenience the following yaml for docker compose can be used to setup the TimescaleDB
 ```yaml
 version: '3.7'
