@@ -13,12 +13,12 @@ defmodule Membrane.Telemetry.TimescaleDB.Release do
   """
   @spec migrate() :: boolean()
   def migrate do
-    with {:ok, _return, _started_apps} <- Ecto.Migrator.with_repo(@repo, &Ecto.Migrator.run(&1, :up, all: true)) do
-      Logger.info("#{@repo} successfully migrated.")
+    case Ecto.Migrator.with_repo(@repo, &Ecto.Migrator.run(&1, :up, all: true)) do
+      {:ok, _return, _started_apps} ->
+        Logger.info("#{@repo} successfully migrated.")
+        true
 
-      true
-    else
-      _ ->
+      _other ->
         false
     end
   end
