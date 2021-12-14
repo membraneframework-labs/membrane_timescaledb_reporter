@@ -5,7 +5,7 @@ jobs:
       - image:  membraneframeworklabs/docker_membrane
         environment:
           MIX_ENV: test
-      - image: timescale/timescaledb:1.7.4-pg12
+      - image: timescale/timescaledb:2.5.1-pg14
         command: [-cshared_preload_libraries=timescaledb]
         environment:
           POSTGRES_USER: postgres

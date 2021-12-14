@@ -46,6 +46,22 @@ config :membrane_timescaledb_reporter,
   ecto_repos: [Membrane.Telemetry.TimescaleDB.Repo]
 ```
 
+For convenience the following yaml for docker compose can be used to setup the TimescaleDB
+```yaml
+version: '3.7'
+services:
+  timescale:
+    image: timescale/timescaledb:2.5.1-pg14
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=membrane_timescaledb_reporter
+    volumes:
+      - ./postgresql.conf:/opt/bitnami/postgresql/conf/postgresql.conf
+```
+
 There are two TimescaleDB specific attributes worth mentioning:
  - `chunk_time_interval` - used for hyper table creation, more in [documentation](https://docs.timescale.com/latest/api#hypertable-management)
  - `chunk_compress_policy_interval` - used as time interval for timescale's daemon compressing chunks, more in [documentation](https://docs.timescale.com/latest/api#add_compress_chunks_policy).
