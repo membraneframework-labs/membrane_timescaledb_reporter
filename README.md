@@ -4,10 +4,6 @@ TimescaleDB metrics reporter for telemetry events emitted by [Membrane Core](htt
 
 Reporter attaches itself to [Telemetry package](https://hex.pm/packages/telemetry) and listens for events declared and documented in Membrane Core's module `Membrane.Telemetry`.
 
- TODO:
- - upgrade TimescaleDB to 2.*,
- - fix config so that users don't have to configure `ecto_repos`
-
 ## Requirements
  - PostgreSQL server instance compatible with TimescaleDB extension.
  
@@ -41,9 +37,24 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   chunk_time_interval: "3 minutes",
   chunk_compress_policy_interval: "1 minute",
   log: false
+```
 
-config :membrane_timescaledb_reporter, 
-  ecto_repos: [Membrane.Telemetry.TimescaleDB.Repo]
+**IMPORTANT:  Reporter will try to perform the migration automatically during reporter's application startup.**
+
+For convenience the following yaml for docker compose can be used to setup the TimescaleDB
+```yaml
+version: '3.7'
+services:
+  timescale:
+    image: timescale/timescaledb:2.5.1-pg14
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=membrane_timescaledb_reporter
+    volumes:
+      - ./postgresql.conf:/opt/bitnami/postgresql/conf/postgresql.conf
 ```
 
 There are two TimescaleDB specific attributes worth mentioning:
