@@ -23,3 +23,5 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 membrane_timescaledb_reporter-*.tar
 
+docker-compose.yml
+
