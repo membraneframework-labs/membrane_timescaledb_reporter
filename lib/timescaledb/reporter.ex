@@ -161,7 +161,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
     {:ok,
      %{
-       # TODO: for a single process keep a map, otherwise use ets
+       # NOTE: for a single process keep a map, otherwise use ets
+       # (in the end every worker will have consistent map and the lookup is faster than
+       # for ets)
        registered_paths: %{},
        measurements: [],
        flush_timeout: flush_timeout,
@@ -298,18 +300,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
         end
       end)
 
-    {_total_inserted, inserted_paths} =
-      case Model.add_all_measurements(accumulator) do
-        {:ok, inserted, inserted_paths} ->
-          Logger.debug("#{@log_prefix} Flushed #{inserted} measurements")
+    {:ok, inserted, inserted_paths} = Model.add_all_measurements(accumulator)
 
-          {inserted, inserted_paths}
-
-        {:error, reason} ->
-          Logger.error("#{@log_prefix} Encountered error: #{inspect(reason)}")
-
-          {0, %{}}
-      end
+    Logger.debug("#{@log_prefix} Flushed #{inserted} measurements")
 
     registered_paths =
       if inserted_paths != %{} do

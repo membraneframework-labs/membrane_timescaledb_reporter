@@ -11,7 +11,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
   require Logger
 
   @spec add_all_measurements({list(), list(), list()}) ::
-          {:ok, non_neg_integer(), map()} | {:error, any()}
+          {:ok, non_neg_integer(), map()}
   def add_all_measurements({with_paths, without_paths, paths_to_insert}) do
     with {:ok, inserted_paths} <- insert_new_paths(paths_to_insert),
          new_with_paths = prepare_measurements_without_paths(without_paths, inserted_paths),

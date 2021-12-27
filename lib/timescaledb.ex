@@ -20,7 +20,8 @@ defmodule Membrane.Telemetry.TimescaleDB do
   alias Membrane.Telemetry.TimescaleDB.Metrics
   alias Membrane.Telemetry.TimescaleDB.Reporter
 
-  def child_spec(_args) do
+  @spec child_spec(keyword()) :: Supervisor.child_spec()
+  def child_spec(_opts) do
     %{
       id: :reporter_supervisor,
       start: {Supervisor, :start_link, [Membrane.Telemetry.TimescaleDB, []]}
@@ -34,15 +35,13 @@ defmodule Membrane.Telemetry.TimescaleDB do
 
     children = [
       {Membrane.Telemetry.TimescaleDB.Repo, []},
-      {Registry, [keys: :unique, name: Reporter.registry()]}
+      {Registry, keys: :unique, name: Reporter.registry()}
     ]
 
     auto_migration = maybe_migrate(auto_migrate?)
     workers = specify_reporters(reporters)
 
-    opts = [strategy: :one_for_one, name: :membrane_timescaledb_reporter]
-
-    Supervisor.init(children ++ auto_migration ++ workers, opts)
+    Supervisor.init(children ++ auto_migration ++ workers, strategy: :one_for_one)
   end
 
   @spec active_workers() :: list(pid)
