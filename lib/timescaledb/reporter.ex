@@ -163,19 +163,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
        # TODO: for a single process keep a map, otherwise use ets
        registered_paths: %{},
        measurements: [],
-       ####
-       total_inserted: 0,
-       caller: Keyword.fetch!(opts, :caller),
-       ###
        flush_timeout: flush_timeout,
        flush_threshold: flush_threshold,
        metrics: metrics
      }}
-  end
-
-  @impl true
-  def handle_call({:caller, pid}, _from, state) do
-    {:reply, :ok, %{state | caller: pid}}
   end
 
   @impl true
@@ -306,7 +297,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
         end
       end)
 
-    {total_inserted, inserted_paths} =
+    {_total_inserted, inserted_paths} =
       case Model.add_all_measurements(accumulator) do
         {:ok, inserted, inserted_paths} ->
           Logger.debug("#{@log_prefix} Flushed #{inserted} measurements")
@@ -326,13 +317,6 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
         state.registered_paths
       end
 
-    send(state.caller, {:total, state.total_inserted + total_inserted})
-
-    %{
-      state
-      | measurements: [],
-        total_inserted: state.total_inserted + total_inserted,
-        registered_paths: registered_paths
-    }
+    %{state | measurements: [], registered_paths: registered_paths}
   end
 end
