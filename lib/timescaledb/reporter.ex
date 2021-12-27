@@ -12,13 +12,36 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   @log_prefix "[#{__MODULE__}]"
 
-  @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
+  @spec registry() :: atom()
+  def registry() do
+    __MODULE__.Registry
+  end
+
+  @spec start(any) :: GenServer.on_start()
+  def start(opts) do
+    do_start(:start, opts)
+  end
+
+  @spec start_link(any) :: GenServer.on_start()
   def start_link(opts) do
+    do_start(:start_link, opts)
+  end
+
+  defp do_start(method, opts) do
     metrics =
       opts[:metrics] ||
-        raise ArgumentError, "the `:metrics` options is required by #{inspect(__MODULE__)}"
+        raise ArgumentError, "the `:metrics` option is required by #{inspect(__MODULE__)}"
 
-    GenServer.start_link(__MODULE__, [metrics: metrics], name: __MODULE__)
+    id =
+      opts[:id] || Keyword.get(opts, :name) ||
+        raise ArgumentError, "the `:id` option is required by #{inspect(__MODULE__)}"
+
+    apply(GenServer, method, [
+      __MODULE__,
+      [metrics: metrics, caller: self()],
+      # allow for custom name for testing purposes
+      [name: Keyword.get(opts, :name) || {:via, Registry, {registry(), id}}]
+    ])
   end
 
   @doc """
@@ -31,10 +54,11 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     * `[:membrane, :link, :new]` - instantly passes measurement to `Membrane.Telemetry.TimescaleDB.Model.add_link/1`.
     * `[:membrane, :pipeline | :bin | :element, :init | :terminate]` - instantly persists information about component being initialized or terminated
   """
-  @spec send_measurement(list(atom()), map()) :: :ok
-  def send_measurement(event_name, measurement)
+  @spec send_measurement(GenServer.server(), list(atom()), map()) :: :ok
+  def send_measurement(reporter, event_name, measurement)
 
   def send_measurement(
+        reporter,
         [:membrane, :metric, :value] = event_name,
         %{component_path: path, metric: metric, value: value} = measurement
       )
@@ -47,12 +71,13 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
       })
 
     GenServer.cast(
-      __MODULE__,
+      reporter,
       {:measurement, event_name, measurement}
     )
   end
 
   def send_measurement(
+        reporter,
         [:membrane, :link, :new],
         %{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to} = link
       )
@@ -66,21 +91,25 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
       })
 
     GenServer.cast(
-      __MODULE__,
+      reporter,
       {:link, link}
     )
   end
 
-  def send_measurement([:membrane, element_type, event_type], %{path: _path} = measurement)
+  def send_measurement(
+        reporter,
+        [:membrane, element_type, event_type],
+        %{path: _path} = measurement
+      )
       when element_type in [:pipeline, :bin, :element] and event_type in [:init, :terminate] do
     GenServer.cast(
-      __MODULE__,
+      reporter,
       {:lifecycle_event, element_type,
        Map.put(measurement, :terminated, event_type == :terminate)}
     )
   end
 
-  def send_measurement(event_name, measurement) do
+  def send_measurement(_reporter, event_name, measurement) do
     Logger.warn(
       "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{inspect(measurement)} is not supported"
     )
@@ -89,37 +118,38 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   @doc """
   Flushes cached measurements to the database.
   """
-  @spec flush() :: :ok
-  def flush() do
-    GenServer.cast(__MODULE__, :flush)
+  @spec flush(GenServer.server()) :: :ok
+  def flush(reporter) do
+    GenServer.cast(reporter, :flush)
   end
 
   @doc """
   Resets cached measurements.
   """
-  @spec reset() :: :ok
-  def reset() do
-    GenServer.cast(__MODULE__, :reset)
+  @spec reset(GenServer.server()) :: :ok
+  def reset(reporter) do
+    GenServer.cast(reporter, :reset)
   end
 
   @doc """
   Returns cached measurements.
   """
-  @spec get_cached_measurements() :: list(map())
-  def get_cached_measurements() do
-    GenServer.call(__MODULE__, :get_cached_measurements)
+  @spec get_cached_measurements(GenServer.server()) :: list(map())
+  def get_cached_measurements(reporter) do
+    GenServer.call(reporter, :get_cached_measurements)
   end
 
   @doc """
   Returns list of metrics registered by GenServer.
   """
-  @spec get_metrics() :: map()
-  def get_metrics() do
-    GenServer.call(__MODULE__, :metrics)
+  @spec get_metrics(GenServer.server()) :: map()
+  def get_metrics(reporter) do
+    GenServer.call(reporter, :metrics)
   end
 
   @impl true
-  def init(metrics: metrics) do
+  def init(opts) do
+    metrics = Keyword.fetch!(opts, :metrics)
     Process.flag(:trap_exit, true)
     Membrane.Telemetry.TimescaleDB.TelemetryHandler.register_metrics(metrics)
 
@@ -130,11 +160,22 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
     {:ok,
      %{
+       # TODO: for a single process keep a map, otherwise use ets
+       registered_paths: %{},
        measurements: [],
+       ####
+       total_inserted: 0,
+       caller: Keyword.fetch!(opts, :caller),
+       ###
        flush_timeout: flush_timeout,
        flush_threshold: flush_threshold,
        metrics: metrics
      }}
+  end
+
+  @impl true
+  def handle_call({:caller, pid}, _from, state) do
+    {:reply, :ok, %{state | caller: pid}}
   end
 
   @impl true
@@ -181,8 +222,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   end
 
   def handle_cast(:flush, %{measurements: measurements} = state) do
-    flush_measurements(measurements)
-    {:noreply, %{state | measurements: []}}
+    {:noreply, flush_measurements(measurements, state)}
   end
 
   def handle_cast(:reset, state) do
@@ -201,7 +241,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   @impl true
   def handle_info(:force_flush, %{flush_timeout: flush_timeout} = state) do
     Logger.debug("#{@log_prefix} Reached flush timeout: #{flush_timeout}, flushing...")
-    flush()
+    flush(self())
     Process.send_after(self(), :force_flush, flush_timeout)
     {:noreply, state}
   end
@@ -227,8 +267,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     measurements = [measurement | measurements]
 
     if length(measurements) >= flush_threshold do
-      flush_measurements(measurements)
-      %{state | measurements: []}
+      flush_measurements(measurements, state)
     else
       %{state | measurements: measurements}
     end
@@ -246,17 +285,54 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     state
   end
 
-  defp flush_measurements([]) do
-    :ok
+  defp flush_measurements([], state) do
+    state
   end
 
-  defp flush_measurements(measurements) do
-    case Model.add_all_measurements(measurements) do
-      {:ok, %{insert_all_measurements: inserted}} ->
-        Logger.debug("#{@log_prefix} Flushed #{inserted} measurements")
+  defp flush_measurements(measurements, state) do
+    accumulator =
+      Enum.reduce(measurements, {[], [], []}, fn %{component_path: path} = measurement,
+                                                 {with_paths, without_paths, paths_to_insert} ->
+        path_id = Map.get(state.registered_paths, path)
+        measurement = Map.put(measurement, :component_path_id, path_id)
 
-      {:error, operation, value, changes} ->
-        Logger.error("#{@log_prefix} Encountered error: #{operation} #{value} #{changes}")
-    end
+        case path_id do
+          nil ->
+            {with_paths, [measurement | without_paths], [path | paths_to_insert]}
+
+          _path_id ->
+            {[Map.delete(measurement, :component_path) | with_paths], without_paths,
+             paths_to_insert}
+        end
+      end)
+
+    {total_inserted, inserted_paths} =
+      case Model.add_all_measurements(accumulator) do
+        {:ok, inserted, inserted_paths} ->
+          Logger.debug("#{@log_prefix} Flushed #{inserted} measurements")
+
+          {inserted, inserted_paths}
+
+        {:error, reason} ->
+          Logger.error("#{@log_prefix} Encountered error: #{inspect(reason)}")
+
+          {0, %{}}
+      end
+
+    registered_paths =
+      if inserted_paths != %{} do
+        Map.merge(state.registered_paths, inserted_paths)
+      else
+        state.registered_paths
+      end
+
+    send(state.caller, {:total, state.total_inserted + total_inserted})
+
+    %{
+      state
+      | measurements: [],
+        total_inserted: state.total_inserted + total_inserted,
+        registered_paths: registered_paths
+    }
   end
 end

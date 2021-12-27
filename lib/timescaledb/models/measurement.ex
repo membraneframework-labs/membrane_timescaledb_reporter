@@ -10,10 +10,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Model.Measurement do
   import Ecto.Changeset
 
   @type t :: %__MODULE__{
-          time: NaiveDateTime.t(),
-          component_path_id: non_neg_integer(),
-          metric: String.t(),
-          value: integer()
+          time: NaiveDateTime.t() | nil,
+          component_path_id: non_neg_integer() | nil,
+          metric: String.t() | nil,
+          value: integer() | nil
         }
 
   @primary_key false

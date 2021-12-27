@@ -17,7 +17,11 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
         _meta,
         _config
       ) do
-    Reporter.send_measurement(event_name, measurement)
+    id = Application.fetch_env!(:membrane_timescaledb_reporter, :reporters) |> :rand.uniform()
+
+    case Registry.lookup(Reporter.registry(), id) do
+      [{pid, _}] -> Reporter.send_measurement(pid, event_name, measurement)
+    end
   end
 
   @doc """
@@ -31,7 +35,7 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
     :telemetry.attach_many(
       get_handler_name(),
       Map.keys(metrics),
-      &handle_event/4,
+      &__MODULE__.handle_event/4,
       nil
     )
   end

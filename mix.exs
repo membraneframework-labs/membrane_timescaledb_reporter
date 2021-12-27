@@ -8,7 +8,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
     [
       app: :membrane_timescaledb_reporter,
       version: @version,
-      elixir: "~> 1.10",
+      elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -28,9 +28,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
 
   def application do
     [
-      extra_applications: [:logger],
-      mod: {Membrane.Telemetry.TimescaleDB, []},
-      start_phases: [migrate: []]
+      extra_applications: [:logger]
     ]
   end
 

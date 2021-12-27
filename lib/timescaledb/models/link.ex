@@ -13,12 +13,12 @@ defmodule Membrane.Telemetry.TimescaleDB.Model.Link do
   require Logger
 
   @type t :: %__MODULE__{
-          time: NaiveDateTime.t(),
-          parent_path: String.t(),
-          from: String.t(),
-          to: String.t(),
-          pad_from: String.t(),
-          pad_to: String.t()
+          time: NaiveDateTime.t() | nil,
+          parent_path: String.t() | nil,
+          from: String.t() | nil,
+          to: String.t() | nil,
+          pad_from: String.t() | nil,
+          pad_to: String.t() | nil
         }
 
   @primary_key false

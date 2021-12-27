@@ -15,6 +15,8 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   chunk_time_interval: "10 minutes",
   chunk_compress_policy_interval: "10 minutes"
 
+config :logger, level: :info
+
 config :membrane_timescaledb_reporter,
   reporter_name: "membrane-timescaledb-handler",
   flush_timeout: 15000,
