@@ -4,15 +4,17 @@ TimescaleDB metrics reporter for telemetry events emitted by [Membrane Core](htt
 
 Reporter attaches itself to [Telemetry package](https://hex.pm/packages/telemetry) and listens for events declared and documented in Membrane Core's module `Membrane.Telemetry`.
 
+To prevent bottlenecks the reporter uses a pool of workers that are responsible for batching measurements up to a certain threshold before
+inserting them to database.
+
+
+
 ## Requirements
  - PostgreSQL server instance compatible with TimescaleDB extension.
- 
- **IMPORTANT:** This reporter is only compatible with TimescaleDB version < 2.0. Make sure to use latest 1.* version.
 
 ## Installation
 
-To make use of the reporter you should add it as a dependency in your application along with `membrane_core`.
-
+To make use of the reporter you should add it as a dependency in your application that is running your membrane's pipeline.
 ```elixir
 def deps do
   [
@@ -21,13 +23,13 @@ def deps do
 end
 ```
 
-First of all you will need to enable telemetry in your `config.exs`:
-```elixir
-config :membrane_core,
-  enable_telemetry: true
-```
+## Measurements
+For available events that can be handled by the reporter please refer to [Membrane.Telemetry](https://github.com/membraneframework/membrane_core/blob/master/lib/membrane/telemetry.ex) 
+module from `membrane_core`.
 
-Additionally, provide database information inside your `config.exs` e.g: 
+
+## Usage (starting reporter and its migrations)
+In order to make use of the reporter one must provide database information inside your `config.exs` e.g: 
 ```elixir
 config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   database: "membrane_timescaledb_reporter",
@@ -39,8 +41,15 @@ config :membrane_timescaledb_reporter, Membrane.Telemetry.TimescaleDB.Repo,
   log: false
 ```
 
-**IMPORTANT:  Reporter will try to perform the migration automatically during reporter's application startup.**
+Then you can add a `Membrane.Telemetry.TimescaleDB` supervisor under your own supervision tree.
+The supervisor will take its config from the following options:
+```elixir
+config :membrane_timescaledb_reporter,
+  reporters: 5 # number of reporter's workers
+  auto_migrate?: true # decides if the auto migration task should get triggered during supervisor initialization
+```
 
+## Quick setup with docker-compose
 For convenience the following yaml for docker compose can be used to setup the TimescaleDB
 ```yaml
 version: '3.7'
@@ -57,14 +66,15 @@ services:
       - ./postgresql.conf:/opt/bitnami/postgresql/conf/postgresql.conf
 ```
 
-There are two TimescaleDB specific attributes worth mentioning:
+## TimescaleDB parameters
+There are two TimescaleDB specific attributes from config worth mentioning:
  - `chunk_time_interval` - used for hyper table creation, more in [documentation](https://docs.timescale.com/latest/api#hypertable-management)
  - `chunk_compress_policy_interval` - used as time interval for timescale's daemon compressing chunks, more in [documentation](https://docs.timescale.com/latest/api#add_compress_chunks_policy).
 
 Adjust them accordingly to your membrane pipeline configuration and
 amount of incoming events. For quick testing shorter intervals might be preferable as metrics can accumulate very fast. 
 
-Last attribute - `log` - if is set to `false`, decreases number of logs for higher readibility and better performance.
+Last attribute - `log` - if is set to `false`, decreases number of logs for higher readability and better performance.
 
 Additional reporter options are:
 ```elixir
@@ -80,9 +90,6 @@ config :membrane_timescaledb_reporter,
  - `flush_timeout` - timeout in miliseconds after which cached measurements will be flushed, no matter how many of them are currently in the buffer
  - `flush_threshold` - threshold after which cached measurements will be flushed to TimescaleDB  
 
-
-## Database migrations
-Application will try to perform auto migrations on application start due to `Membrane.Telemetry.TimescaleDB.start_phase/3`.
 
 ## Database Architecture
 Reporter's repository will create three tables:

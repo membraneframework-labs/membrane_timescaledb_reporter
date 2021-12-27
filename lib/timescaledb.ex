@@ -2,6 +2,17 @@ defmodule Membrane.Telemetry.TimescaleDB do
   @moduledoc """
   Reporter's supervisor responsible for starting a database repository and
   a bunch of reporter's workers.
+
+  Supervisor can be controlled via config variables to determine whether
+  the auto migration process should be called or the number of workers that
+  should be responsible for handling the events/measurements.
+
+  You can control the config in following way:
+  ```
+  config :membrane_timescaledb_reporter,
+    reporters: 5 # default number of reporter's workers
+    auto_migrate?: true # decides if the auto migration should get performed
+  ```
   """
 
   use Supervisor
@@ -9,13 +20,10 @@ defmodule Membrane.Telemetry.TimescaleDB do
   alias Membrane.Telemetry.TimescaleDB.Metrics
   alias Membrane.Telemetry.TimescaleDB.Reporter
 
-  @doc """
-  Starts application.
-  """
   @impl true
   def init(_opts) do
     reporters = Application.get_env(:membrane_timescaledb_reporter, :reporters, 5)
-    auto_migrate? = Application.get_env(:membrane_timescaledb_reporter, :auto_migrate?, false)
+    auto_migrate? = Application.get_env(:membrane_timescaledb_reporter, :auto_migrate?, true)
 
     children = [
       {Membrane.Telemetry.TimescaleDB.Repo, []},

@@ -8,7 +8,7 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   require Logger
 
   @doc """
-  Handles event names previously registered by `register_metrics/1` and passes them to `Membrane.Telemetry.TimescaleDB.Reporter.send_measurement/2`.
+  Handles event names previously registered by `register_metrics/1` and passes them to `Membrane.Telemetry.TimescaleDB.Reporter.send_measurement/3`.
   """
   @spec handle_event(list(atom()), map(), map(), map()) :: :ok
   def handle_event(

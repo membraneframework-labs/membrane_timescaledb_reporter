@@ -17,9 +17,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
          new_with_paths = prepare_measurements_without_paths(without_paths, inserted_paths),
          {total_inserted, _} <- Repo.insert_all("measurements", with_paths ++ new_with_paths) do
       {:ok, total_inserted, inserted_paths}
-     else
+    else
       other ->
-        {:error, "failed to add measurements #{inspect other}"}
+        {:error, "failed to add measurements #{inspect(other)}"}
     end
   end
 
