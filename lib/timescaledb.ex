@@ -20,6 +20,13 @@ defmodule Membrane.Telemetry.TimescaleDB do
   alias Membrane.Telemetry.TimescaleDB.Metrics
   alias Membrane.Telemetry.TimescaleDB.Reporter
 
+  def child_spec(_args) do
+    %{
+      id: :reporter_supervisor,
+      start: {Supervisor, :start_link, [Membrane.Telemetry.TimescaleDB, []]}
+    }
+  end
+
   @impl true
   def init(_opts) do
     reporters = Application.get_env(:membrane_timescaledb_reporter, :reporters, 5)
