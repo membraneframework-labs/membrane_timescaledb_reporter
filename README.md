@@ -7,8 +7,6 @@ Reporter attaches itself to [Telemetry package](https://hex.pm/packages/telemetr
 To prevent bottlenecks the reporter uses a pool of workers that are responsible for batching measurements up to a certain threshold before
 inserting them to database.
 
-
-
 ## Requirements
  - PostgreSQL server instance compatible with TimescaleDB extension.
 
@@ -26,7 +24,6 @@ end
 ## Measurements
 For available events that can be handled by the reporter please refer to [Membrane.Telemetry](https://github.com/membraneframework/membrane_core/blob/master/lib/membrane/telemetry.ex) 
 module from `membrane_core`.
-
 
 ## Usage (starting reporter and its migrations)
 In order to make use of the reporter one must provide database information inside your `config.exs` e.g: 
@@ -89,7 +86,6 @@ config :membrane_timescaledb_reporter,
  Some metrics can be sent hundreds times per second, to avoid database performance issues, measurements of certain event names are cached and later flushed to database in batches.
  - `flush_timeout` - timeout in miliseconds after which cached measurements will be flushed, no matter how many of them are currently in the buffer
  - `flush_threshold` - threshold after which cached measurements will be flushed to TimescaleDB  
-
 
 ## Database Architecture
 Reporter's repository will create three tables:

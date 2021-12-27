@@ -15,7 +15,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
   def add_all_measurements({with_paths, without_paths, paths_to_insert}) do
     with {:ok, inserted_paths} <- insert_new_paths(paths_to_insert),
          new_with_paths = prepare_measurements_without_paths(without_paths, inserted_paths),
-         {total_inserted, _} <- Repo.insert_all("measurements", with_paths ++ new_with_paths) do
+         {total_inserted, _} <- Repo.insert_all("measurements", new_with_paths ++ with_paths) do
       {:ok, total_inserted, inserted_paths}
     else
       other ->
@@ -50,8 +50,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
 
   defp insert_new_paths(paths_to_insert) do
     {inserted, paths} =
-      ComponentPath
-      |> Repo.insert_all(Enum.map(paths_to_insert, &%{path: &1}),
+      Repo.insert_all(
+        ComponentPath,
+        Enum.map(paths_to_insert, &%{path: &1}),
         on_conflict: :nothing,
         returning: true
       )
@@ -67,8 +68,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
           |> MapSet.difference(MapSet.new(paths, & &1.path))
           |> MapSet.to_list()
 
-        from(cp in ComponentPath, where: cp.path in ^to_query)
-        |> Repo.all()
+        Repo.all(from(cp in ComponentPath, where: cp.path in ^to_query))
       else
         []
       end

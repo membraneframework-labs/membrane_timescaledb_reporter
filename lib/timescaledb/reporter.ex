@@ -150,6 +150,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   @impl true
   def init(opts) do
     metrics = Keyword.fetch!(opts, :metrics)
+    # NOTE: why do we use trap_exit?
     Process.flag(:trap_exit, true)
     Membrane.Telemetry.TimescaleDB.TelemetryHandler.register_metrics(metrics)
 
