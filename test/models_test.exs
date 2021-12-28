@@ -1,5 +1,5 @@
 defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
-  use Membrane.Telemetry.TimescaleDB.RepoCase
+  use Membrane.Telemetry.TimescaleDB.RepoCase, async: true
 
   alias Membrane.Telemetry.TimescaleDB.Repo
   alias Membrane.Telemetry.TimescaleDB.Model
@@ -28,11 +28,21 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
       assert Enum.empty?(Repo.all(Measurement))
       assert Enum.empty?(Repo.all(ComponentPath))
 
-      assert {:ok, %{insert_all_measurements: 1}} =
-               Model.add_all_measurements([apply_time(@measurement)])
+      with_paths = []
+
+      without_paths = [
+        apply_time(%{component_path: "path", metric: "metric", value: 10})
+      ]
+
+      paths_to_insert = ["path"]
+
+      assert {:ok, 1, inserted_paths} =
+               Model.add_all_measurements({with_paths, without_paths, paths_to_insert})
 
       assert Enum.count(Repo.all(Measurement)) == 1
       assert Enum.count(Repo.all(ComponentPath)) == 1
+
+      assert Map.keys(inserted_paths) == ["path"]
     end
 
     test "creates Link entry" do
@@ -45,8 +55,20 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
 
     test "creates ComponentPath uniquely" do
       # create two batches
-      1..10 |> Enum.map(fn i -> apply_time(@measurement, i) end) |> Model.add_all_measurements()
-      1..10 |> Enum.map(fn i -> apply_time(@measurement, i) end) |> Model.add_all_measurements()
+      1..10
+      |> Enum.map(fn i -> apply_time(@measurement, i) end)
+      |> then(fn measurements ->
+        {[], measurements, ["path"]}
+      end)
+      |> Model.add_all_measurements()
+
+      1..10
+      |> Enum.map(fn i -> apply_time(@measurement, i) end)
+      |> then(fn measurements ->
+        {[], measurements, ["path"]}
+      end)
+      |> Model.add_all_measurements()
+
       assert [component_path] = Repo.all(ComponentPath)
       assert component_path.path == @measurement.component_path
 

@@ -13,9 +13,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Model.Element do
   import Ecto.Changeset
 
   @type t :: %__MODULE__{
-          time: NaiveDateTime.t(),
-          path: String.t(),
-          terminated: boolean()
+          time: NaiveDateTime.t() | nil,
+          path: String.t() | nil,
+          terminated: boolean() | nil
         }
 
   @primary_key false

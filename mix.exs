@@ -8,7 +8,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
     [
       app: :membrane_timescaledb_reporter,
       version: @version,
-      elixir: "~> 1.10",
+      elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -28,9 +28,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
 
   def application do
     [
-      extra_applications: [:logger],
-      mod: {Membrane.Telemetry.TimescaleDB, []},
-      start_phases: [migrate: []]
+      extra_applications: [:logger]
     ]
   end
 
@@ -64,7 +62,22 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
       main: "readme",
       extras: ["README.md", LICENSE: [title: "License"]],
       source_ref: "v#{@version}",
-      nest_modules_by_prefix: [Membrane.Telemetry.TimescaleDB]
+      nest_modules_by_prefix: [Membrane.Telemetry.TimescaleDB],
+      groups_for_modules: [
+        "Reporting API": [
+          Membrane.Telemetry.TimescaleDB,
+          Membrane.Telemetry.TimescaleDB.Reporter,
+          Membrane.Telemetry.TimescaleDB.TelemetryHandler,
+          Membrane.Telemetry.TimescaleDB.Metrics
+        ],
+        Database: [
+          Membrane.Telemetry.TimescaleDB.Migrator,
+          Membrane.Telemetry.TimescaleDB.Model.ComponentPath,
+          Membrane.Telemetry.TimescaleDB.Model.Element,
+          Membrane.Telemetry.TimescaleDB.Model.Link,
+          Membrane.Telemetry.TimescaleDB.Model.Measurement
+        ]
+      ]
     ]
   end
 

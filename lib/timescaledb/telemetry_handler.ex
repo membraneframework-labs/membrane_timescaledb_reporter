@@ -8,7 +8,7 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   require Logger
 
   @doc """
-  Handles event names previously registered by `register_metrics/1` and passes them to `Membrane.Telemetry.TimescaleDB.Reporter.send_measurement/2`.
+  Handles event names previously registered by `register_metrics/1` and passes them to `Membrane.Telemetry.TimescaleDB.Reporter.send_measurement/3`.
   """
   @spec handle_event(list(atom()), map(), map(), map()) :: :ok
   def handle_event(
@@ -17,7 +17,12 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
         _meta,
         _config
       ) do
-    Reporter.send_measurement(event_name, measurement)
+    # do the round-robin and dispatch the measurement
+    id = Application.fetch_env!(:membrane_timescaledb_reporter, :reporters) |> :rand.uniform()
+
+    case Registry.lookup(Reporter.registry(), id) do
+      [{pid, _}] -> Reporter.send_measurement(pid, event_name, measurement)
+    end
   end
 
   @doc """
@@ -31,7 +36,7 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
     :telemetry.attach_many(
       get_handler_name(),
       Map.keys(metrics),
-      &handle_event/4,
+      &__MODULE__.handle_event/4,
       nil
     )
   end

@@ -1,5 +1,5 @@
 defmodule Membrane.Telemetry.TimescaleDB.ApplicationTest do
-  use Membrane.Telemetry.TimescaleDB.RepoCase
+  use Membrane.Telemetry.TimescaleDB.RepoCase, async: false
 
   alias Membrane.Telemetry.TimescaleDB.{TelemetryHandler, Metrics, Reporter}
 
@@ -7,7 +7,13 @@ defmodule Membrane.Telemetry.TimescaleDB.ApplicationTest do
 
   describe "Application" do
     setup do
-      Reporter.reset()
+      {:ok, reporter} = Reporter.start(metrics: Metrics.all(), name: Reporter)
+
+      on_exit(fn ->
+        :ok = GenServer.stop(reporter)
+      end)
+
+      [reporter: reporter]
     end
 
     test "attaches telemetry handler on start" do
@@ -23,7 +29,11 @@ defmodule Membrane.Telemetry.TimescaleDB.ApplicationTest do
     test "handles measurement" do
       :telemetry.execute([:membrane, :metric, :value], @measurement)
 
-      assert [@measurement] = Reporter.get_cached_measurements()
+      measurements =
+        Membrane.Telemetry.TimescaleDB.active_workers()
+        |> Enum.flat_map(&Reporter.get_cached_measurements(&1))
+
+      assert [@measurement] = measurements
     end
   end
 end

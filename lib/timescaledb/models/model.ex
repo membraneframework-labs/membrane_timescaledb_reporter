@@ -2,28 +2,35 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
   @moduledoc """
   Module responsible for putting data to TimescaleDB.
   """
+
   import Ecto.Query
 
   alias Membrane.Telemetry.TimescaleDB.Repo
-  alias Membrane.Telemetry.TimescaleDB.Model.{Element, Measurement, ComponentPath, Link}
+  alias Membrane.Telemetry.TimescaleDB.Model.{ComponentPath, Element, Measurement, Link}
 
   require Logger
 
-  @spec add_all_measurements(list(map())) :: {:ok | :error, any()}
-  def add_all_measurements(measurements) do
-    component_paths =
-      measurements
-      |> Enum.map(&%{path: &1.component_path})
-      |> Enum.uniq()
+  @doc """
+  Inserts all given measurements into a database as a batch.
 
-    try do
-      Ecto.Multi.new()
-      |> insert_all_component_paths(component_paths)
-      |> fetch_remaining_paths(component_paths)
-      |> insert_all_measurements(measurements)
-      |> Repo.transaction()
-    rescue
-      error in Postgrex.Error -> {:error, error}
+  Takes a tuple consisting of 3 lists:
+  * `with_paths` - list of measurements with already present `component_path_id` replacing `component_path`
+  * `without_paths` - list of measurements with unknown `component_path_id` but with a present `component_path` fields
+  * `paths_to_insert` - list of components' paths that must be inserted to the database, the inserted records are then used to assign
+                        `without_paths` their corresponding `path_id`s
+
+  Returns number of inserted records and a mapping of newly inserted paths `{component_path => component_path_id}`.
+  """
+  @spec add_all_measurements({list(), list(), list()}) ::
+          {:ok, non_neg_integer(), map()}
+  def add_all_measurements({with_paths, without_paths, paths_to_insert}) do
+    with {:ok, inserted_paths} <- insert_new_paths(paths_to_insert),
+         new_with_paths = prepare_measurements_without_paths(without_paths, inserted_paths),
+         {total_inserted, _} <- Repo.insert_all("measurements", new_with_paths ++ with_paths) do
+      {:ok, total_inserted, inserted_paths}
+    else
+      other ->
+        {:error, "failed to add measurements #{inspect(other)}"}
     end
   end
 
@@ -48,63 +55,46 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
     |> Repo.insert()
   end
 
-  # inserts given element paths if they don't exist and returns them, otherwise does nothing
-  defp insert_all_component_paths(multi, component_paths) do
-    Ecto.Multi.insert_all(multi, :insert_all_component_paths, ComponentPath, component_paths,
-      on_conflict: :nothing,
-      returning: true
-    )
+  defp insert_new_paths([]) do
+    {:ok, %{}}
   end
 
-  # fetches remaining paths that have not been returned by insert_all_component_paths/2 and bundles them all together
-  defp fetch_remaining_paths(multi, component_paths) do
-    Ecto.Multi.run(multi, :fetch_remaining_paths, fn repo, changes ->
-      %{
-        insert_all_component_paths: {_n, inserted_component_paths}
-      } = changes
+  defp insert_new_paths(paths_to_insert) do
+    {inserted, paths} =
+      Repo.insert_all(
+        ComponentPath,
+        Enum.map(paths_to_insert, &%{path: &1}),
+        on_conflict: :nothing,
+        returning: true
+      )
 
-      fetched_paths =
-        inserted_component_paths
-        |> MapSet.new(& &1.path)
+    # if 'inserted' count is less than the number of paths to insert
+    # that means that we got a conflict and some path is already inserted
+    # in such case just query non inserted paths for their ids
+    already_inserted =
+      if length(paths_to_insert) > inserted do
+        to_query =
+          paths_to_insert
+          |> MapSet.new()
+          |> MapSet.difference(MapSet.new(paths, & &1.path))
+          |> MapSet.to_list()
 
-      remaining_paths =
-        component_paths
-        |> MapSet.new(& &1.path)
-        |> MapSet.difference(fetched_paths)
-        |> MapSet.to_list()
+        Repo.all(from(cp in ComponentPath, where: cp.path in ^to_query))
+      else
+        []
+      end
 
-      all_paths =
-        inserted_component_paths ++
-          repo.all(from(ep in ComponentPath, where: ep.path in ^remaining_paths))
-
-      {:ok, all_paths}
-    end)
+    (paths ++ already_inserted)
+    |> Map.new(fn el -> {el.path, el.id} end)
+    |> then(&{:ok, &1})
   end
 
-  # maps ComponentPath's path to corresponding id
-  defp map_path_to_id(paths) do
-    paths
-    |> Enum.map(&{&1.path, &1.id})
-    |> Enum.into(%{})
-  end
-
-  # remaps all measurements' component_path to corresponding component_path's id and inserts them all
-  defp insert_all_measurements(multi, measurements) do
-    Ecto.Multi.run(multi, :insert_all_measurements, fn repo, changes ->
-      %{fetch_remaining_paths: all_paths} = changes
-
-      path_to_id = map_path_to_id(all_paths)
-
-      measurements =
-        measurements
-        |> Enum.map(fn measurement ->
-          measurement
-          |> Map.put(:component_path_id, path_to_id[measurement.component_path])
-          |> Map.drop([:component_path])
-        end)
-
-      {inserted, _} = repo.insert_all(Measurement, measurements)
-      {:ok, inserted}
+  defp prepare_measurements_without_paths(without_paths, inserted_paths) do
+    without_paths
+    |> Enum.map(fn measurement ->
+      measurement
+      |> Map.put(:component_path_id, Map.get(inserted_paths, measurement.component_path))
+      |> Map.delete(:component_path)
     end)
   end
 end

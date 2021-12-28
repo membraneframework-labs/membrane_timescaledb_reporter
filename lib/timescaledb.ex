@@ -1,34 +1,68 @@
 defmodule Membrane.Telemetry.TimescaleDB do
   @moduledoc """
-  Module responsible for starting Reporter.
+  Reporter's supervisor responsible for starting a database repository and
+  a bunch of reporter's workers.
+
+  Supervisor can be controlled via config variables to determine whether
+  the auto migration process should be called or the number of workers that
+  should be responsible for handling the events/measurements.
+
+  You can control the config in following way:
+  ```
+  config :membrane_timescaledb_reporter,
+    reporters: 5 # default number of reporter's workers
+    auto_migrate?: true # decides if the auto migration should get performed
+  ```
   """
 
-  use Application
+  use Supervisor
+
   alias Membrane.Telemetry.TimescaleDB.Metrics
+  alias Membrane.Telemetry.TimescaleDB.Reporter
 
-  @doc """
-  Starts application.
-  """
-  @impl true
-  def start(_type, _args) do
-    children = [
-      {Membrane.Telemetry.TimescaleDB.Repo, []},
-      {Membrane.Telemetry.TimescaleDB.Reporter, [metrics: Metrics.all()]}
-    ]
-
-    opts = [strategy: :one_for_one, name: :membrane_timescaledb_reporter]
-    Supervisor.start_link(children, opts)
+  @spec child_spec(keyword()) :: Supervisor.child_spec()
+  def child_spec(_opts) do
+    %{
+      id: :reporter_supervisor,
+      start: {Supervisor, :start_link, [Membrane.Telemetry.TimescaleDB, []]}
+    }
   end
 
-  @doc """
-  Applies migrations.
-  """
   @impl true
-  def start_phase(:migrate, :normal, _opts) do
-    if Membrane.Telemetry.TimescaleDB.Release.migrate() do
-      :ok
-    else
-      {:error, :migration_error}
+  def init(_opts) do
+    reporters = Application.get_env(:membrane_timescaledb_reporter, :reporters, 5)
+    auto_migrate? = Application.get_env(:membrane_timescaledb_reporter, :auto_migrate?, true)
+
+    children = [
+      {Membrane.Telemetry.TimescaleDB.Repo, []},
+      {Registry, keys: :unique, name: Reporter.registry()}
+    ]
+
+    auto_migration = maybe_migrate(auto_migrate?)
+    workers = specify_reporters(reporters)
+
+    Supervisor.init(children ++ auto_migration ++ workers, strategy: :one_for_one)
+  end
+
+  @spec active_workers() :: list(pid)
+  def active_workers() do
+    # from tuples of {id, pid, value} selects pids
+    Registry.select(Reporter.registry(), [{{:"$1", :"$2", :"$3"}, [], [:"$2"]}])
+  end
+
+  defp maybe_migrate(false), do: []
+
+  defp maybe_migrate(true) do
+    [Membrane.Telemetry.TimescaleDB.Migrator]
+  end
+
+  defp specify_reporters(reporters) when is_integer(reporters) and reporters >= 0 do
+    for i <- 1..reporters do
+      %{
+        id: "reporter_#{i}",
+        start: {Reporter, :start_link, [[metrics: Metrics.all(), id: i]]},
+        type: :worker
+      }
     end
   end
 end
