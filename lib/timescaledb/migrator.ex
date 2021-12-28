@@ -1,4 +1,4 @@
-defmodule Membrane.Telemetry.TimescaleDB.Release do
+defmodule Membrane.Telemetry.TimescaleDB.Migrator do
   @moduledoc """
   An auto migration task that can be run along with Reporter's supervisor tree.
   """

@@ -1,6 +1,8 @@
 defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   @moduledoc """
-  Receives measurements via `send_measurement/1` then, based on event names, eventually persists them to TimescaleDB database.
+  A worker responsible for persisting events/measurements to the TimescaleDB database.
+
+  Receives measurements via `send_measurement/3` then, based on event names, eventually persists them to TimescaleDB database.
   """
 
   use GenServer

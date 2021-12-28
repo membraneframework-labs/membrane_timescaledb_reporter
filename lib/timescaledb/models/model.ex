@@ -10,6 +10,17 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
 
   require Logger
 
+  @doc """
+  Inserts all given measurements into a database as a batch.
+
+  Takes a tuple consisting of 3 lists:
+  * `with_paths` - list of measurements with already present `component_path_id` replacing `component_path`
+  * `without_paths` - list of measurements with unknown `component_path_id` but with a present `component_path` fields
+  * `paths_to_insert` - list of components' paths that must be inserted to the database, the inserted records are then used to assign
+                        `without_paths` their corresponding `path_id`s
+
+  Returns number of inserted records and a mapping of newly inserted paths `{component_path => component_path_id}`.
+  """
   @spec add_all_measurements({list(), list(), list()}) ::
           {:ok, non_neg_integer(), map()}
   def add_all_measurements({with_paths, without_paths, paths_to_insert}) do

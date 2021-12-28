@@ -62,7 +62,22 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
       main: "readme",
       extras: ["README.md", LICENSE: [title: "License"]],
       source_ref: "v#{@version}",
-      nest_modules_by_prefix: [Membrane.Telemetry.TimescaleDB]
+      nest_modules_by_prefix: [Membrane.Telemetry.TimescaleDB],
+      groups_for_modules: [
+        "Reporting API": [
+          Membrane.Telemetry.TimescaleDB,
+          Membrane.Telemetry.TimescaleDB.Reporter,
+          Membrane.Telemetry.TimescaleDB.TelemetryHandler,
+          Membrane.Telemetry.TimescaleDB.Metrics
+        ],
+        Database: [
+          Membrane.Telemetry.TimescaleDB.Migrator,
+          Membrane.Telemetry.TimescaleDB.Model.ComponentPath,
+          Membrane.Telemetry.TimescaleDB.Model.Element,
+          Membrane.Telemetry.TimescaleDB.Model.Link,
+          Membrane.Telemetry.TimescaleDB.Model.Measurement
+        ]
+      ]
     ]
   end
 

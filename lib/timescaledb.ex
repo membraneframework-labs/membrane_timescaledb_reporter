@@ -53,7 +53,7 @@ defmodule Membrane.Telemetry.TimescaleDB do
   defp maybe_migrate(false), do: []
 
   defp maybe_migrate(true) do
-    [Membrane.Telemetry.TimescaleDB.Release]
+    [Membrane.Telemetry.TimescaleDB.Migrator]
   end
 
   defp specify_reporters(reporters) when is_integer(reporters) and reporters >= 0 do
