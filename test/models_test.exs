@@ -3,7 +3,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
 
   alias Membrane.Telemetry.TimescaleDB.Repo
   alias Membrane.Telemetry.TimescaleDB.Model
-  alias Membrane.Telemetry.TimescaleDB.Model.{Measurement, ComponentPath, Link}
+  alias Membrane.Telemetry.TimescaleDB.Model.{Element, Measurement, ComponentPath, Link}
 
   @measurement %{component_path: "path", metric: "metric", value: 10}
   @link %{
@@ -73,6 +73,21 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
       assert component_path.path == @measurement.component_path
 
       assert Enum.count(Repo.all(Measurement)) == 20
+    end
+
+    test "creates Element entry correctly" do
+      attrs =
+        %{
+          path: "some_path",
+          terminated: false,
+          metadata: %{log_metadata: %{key: "value"}}
+        }
+        |> apply_time()
+
+      assert {:ok, _element} =
+               %Element{}
+               |> Element.changeset(attrs)
+               |> Repo.insert()
     end
 
     test "returns error on incomplete Link" do

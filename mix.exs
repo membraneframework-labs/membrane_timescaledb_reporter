@@ -40,6 +40,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
       {:ecto_sql, "~> 3.7"},
       {:telemetry, "~> 1.0"},
       {:postgrex, ">= 0.15.13"},
+      {:jason, "~> 1.3"},
       {:dialyxir, "~> 1.1", only: [:dev], runtime: false},
       {:credo, "~> 1.6", only: :dev, runtime: false},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false}

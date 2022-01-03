@@ -56,13 +56,14 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     * `[:membrane, :link, :new]` - instantly passes measurement to `Membrane.Telemetry.TimescaleDB.Model.add_link/1`.
     * `[:membrane, :pipeline | :bin | :element, :init | :terminate]` - instantly persists information about component being initialized or terminated
   """
-  @spec send_measurement(GenServer.server(), list(atom()), map()) :: :ok
-  def send_measurement(reporter, event_name, measurement)
+  @spec send_measurement(GenServer.server(), list(atom()), map(), map()) :: :ok
+  def send_measurement(reporter, event_name, measurement, metadata)
 
   def send_measurement(
         reporter,
         [:membrane, :metric, :value] = event_name,
-        %{component_path: path, metric: metric, value: value} = measurement
+        %{component_path: path, metric: metric, value: value} = measurement,
+        _metadata
       )
       when is_binary(path) and is_binary(metric) and is_integer(value) do
     measurement =
@@ -81,7 +82,9 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   def send_measurement(
         reporter,
         [:membrane, :link, :new],
-        %{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to} = link
+        %{parent_path: parent_path, from: from, to: to, pad_from: pad_from, pad_to: pad_to} =
+          link,
+        _metadata
       )
       when is_binary(parent_path) and is_binary(from) and is_binary(to) and is_binary(pad_from) and
              is_binary(pad_to) do
@@ -101,13 +104,14 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   def send_measurement(
         reporter,
         [:membrane, element_type, event_type],
-        %{path: _path} = measurement
+        %{path: _path} = measurement,
+        metadata
       )
       when element_type in [:pipeline, :bin, :element] and event_type in [:init, :terminate] do
     GenServer.cast(
       reporter,
       {:lifecycle_event, element_type,
-       Map.put(measurement, :terminated, event_type == :terminate)}
+       Map.put(measurement, :terminated, event_type == :terminate), metadata}
     )
   end
 
@@ -197,10 +201,12 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
   end
 
   # ignore pipeline events
-  def handle_cast({:lifecycle_event, type, measurement}, state) when type in [:bin, :element] do
+  def handle_cast({:lifecycle_event, type, measurement, metadata}, state)
+      when type in [:bin, :element] do
     case Model.add_element_event(
            measurement
            |> Map.put(:time, NaiveDateTime.utc_now())
+           |> Map.put(:metadata, sanitize_metadata(metadata))
            |> Map.update!(:path, &extend_with_os_pid/1)
          ) do
       {:ok, _} ->
@@ -280,6 +286,24 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
     state
   end
+
+  defp sanitize_metadata(metadata) when is_map(metadata) do
+    metadata
+    |> Enum.map(fn {key, value} -> {key, sanitize_metadata(value)} end)
+    |> Map.new()
+  end
+
+  defp sanitize_metadata(metadata) when is_list(metadata) do
+    if Keyword.keyword?(metadata) do
+      metadata
+      |> Enum.map(fn {key, value} -> {key, sanitize_metadata(value)} end)
+      |> Map.new()
+    else
+      Enum.map(metadata, &sanitize_metadata/1)
+    end
+  end
+
+  defp sanitize_metadata(metadata), do: metadata
 
   defp flush_measurements([], state) do
     state
