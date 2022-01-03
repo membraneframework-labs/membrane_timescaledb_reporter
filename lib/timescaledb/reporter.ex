@@ -115,7 +115,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     )
   end
 
-  def send_measurement(_reporter, event_name, measurement) do
+  def send_measurement(_reporter, event_name, measurement, _metadata) do
     Logger.warn(
       "#{__MODULE__}: Either event name: #{inspect(event_name)} or measurement format: #{inspect(measurement)} is not supported"
     )
