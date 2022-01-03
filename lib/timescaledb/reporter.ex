@@ -57,7 +57,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
     * `[:membrane, :pipeline | :bin | :element, :init | :terminate]` - instantly persists information about component being initialized or terminated
   """
   @spec send_measurement(GenServer.server(), list(atom()), map(), map()) :: :ok
-  def send_measurement(reporter, event_name, measurement, metadata)
+  def send_measurement(reporter, event_name, measurement, metadata \\ %{})
 
   def send_measurement(
         reporter,
