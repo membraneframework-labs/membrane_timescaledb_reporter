@@ -14,14 +14,14 @@ defmodule Membrane.Telemetry.TimescaleDB.TelemetryHandler do
   def handle_event(
         event_name,
         measurement,
-        _meta,
+        meta,
         _config
       ) do
     # do the round-robin and dispatch the measurement
     id = Application.fetch_env!(:membrane_timescaledb_reporter, :reporters) |> :rand.uniform()
 
     case Registry.lookup(Reporter.registry(), id) do
-      [{pid, _}] -> Reporter.send_measurement(pid, event_name, measurement)
+      [{pid, _}] -> Reporter.send_measurement(pid, event_name, measurement, meta)
     end
   end
 
