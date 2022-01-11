@@ -3,7 +3,7 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
 
   alias Membrane.Telemetry.TimescaleDB.Repo
   alias Membrane.Telemetry.TimescaleDB.Model
-  alias Membrane.Telemetry.TimescaleDB.Model.{Element, Measurement, ComponentPath, Link}
+  alias Membrane.Telemetry.TimescaleDB.Model.{Element, Measurement, ComponentPath, Link, Log}
 
   @measurement %{component_path: "path", metric: "metric", value: 10}
   @link %{
@@ -88,6 +88,17 @@ defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
                %Element{}
                |> Element.changeset(attrs)
                |> Repo.insert()
+    end
+
+    test "creates Log entry correctly" do
+      attrs  = %{
+        time: NaiveDateTime.utc_now(),
+        level: "info",
+        component_path: "some/path",
+        message: "This is a string message"
+      }
+
+      assert {:ok, _log} = %Log{} |> Log.changeset(attrs) |> Repo.insert()
     end
 
     test "returns error on incomplete Link" do
