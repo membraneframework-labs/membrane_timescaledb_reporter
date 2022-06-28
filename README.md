@@ -42,7 +42,7 @@ Then you can add a `Membrane.Telemetry.TimescaleDB` supervisor under your own su
 The supervisor will take its config from the following options:
 ```elixir
 config :membrane_timescaledb_reporter,
-  reporters: 5 # number of reporter's workers
+  reporters: 5, # number of reporter's workers
   auto_migrate?: true # decides if the auto migration task should get triggered during supervisor initialization
 ```
 
