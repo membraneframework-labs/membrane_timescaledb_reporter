@@ -7,10 +7,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Reporter do
 
   use GenServer
 
+  require Logger
+
   alias Membrane.Telemetry.TimescaleDB.Model
   alias Membrane.Telemetry.TimescaleDB.TelemetryHandler
-
-  require Logger
 
   @log_prefix "[#{__MODULE__}]"
 

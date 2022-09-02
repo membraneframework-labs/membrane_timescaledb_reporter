@@ -12,6 +12,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      dialyzer: dialyzer(),
 
       # hex
       description: "Membrane Multimedia Framework (TimescaleDB metrics reporter)",
@@ -62,6 +63,7 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
     [
       main: "readme",
       extras: ["README.md", LICENSE: [title: "License"]],
+      formatters: ["html"],
       source_ref: "v#{@version}",
       nest_modules_by_prefix: [Membrane.Telemetry.TimescaleDB],
       groups_for_modules: [
@@ -86,5 +88,18 @@ defmodule Membrane.Telemetry.TimescaleDB.Mixfile do
     [
       test: ["ecto.create", "ecto.migrate", "test"]
     ]
+  end
+
+  defp dialyzer() do
+    opts = [
+      flags: [:error_handling]
+    ]
+
+    if System.get_env("CI") == "true" do
+      # Store PLTs in cacheable directory for CI
+      [plt_local_path: "priv/plts", plt_core_path: "priv/plts"] ++ opts
+    else
+      opts
+    end
   end
 end

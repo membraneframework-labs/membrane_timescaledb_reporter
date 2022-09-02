@@ -5,10 +5,10 @@ defmodule Membrane.Telemetry.TimescaleDB.Model do
 
   import Ecto.Query
 
-  alias Membrane.Telemetry.TimescaleDB.Repo
-  alias Membrane.Telemetry.TimescaleDB.Model.{ComponentPath, Element, Measurement, Link}
-
   require Logger
+
+  alias Membrane.Telemetry.TimescaleDB.Model.{ComponentPath, Element, Link, Measurement}
+  alias Membrane.Telemetry.TimescaleDB.Repo
 
   @doc """
   Inserts all given measurements into a database as a batch.
