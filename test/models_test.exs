@@ -1,9 +1,9 @@
 defmodule Membrane.Telemetry.TimescaleDB.ModelTest do
   use Membrane.Telemetry.TimescaleDB.RepoCase, async: true
 
-  alias Membrane.Telemetry.TimescaleDB.Repo
   alias Membrane.Telemetry.TimescaleDB.Model
-  alias Membrane.Telemetry.TimescaleDB.Model.{Element, Measurement, ComponentPath, Link}
+  alias Membrane.Telemetry.TimescaleDB.Model.{ComponentPath, Element, Link, Measurement}
+  alias Membrane.Telemetry.TimescaleDB.Repo
 
   @measurement %{component_path: "path", metric: "metric", value: 10}
   @link %{

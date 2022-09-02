@@ -1,7 +1,7 @@
 defmodule Membrane.Telemetry.TimescaleDB.ApplicationTest do
   use Membrane.Telemetry.TimescaleDB.RepoCase, async: false
 
-  alias Membrane.Telemetry.TimescaleDB.{TelemetryHandler, Metrics, Reporter}
+  alias Membrane.Telemetry.TimescaleDB.{Metrics, Reporter, TelemetryHandler}
 
   @measurement %{component_path: "handler test", metric: "testing", value: 1}
 
